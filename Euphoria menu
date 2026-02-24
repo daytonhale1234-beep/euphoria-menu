@@ -1,4 +1,4 @@
-local Dui = MachoCreateDui("http://blossomlua.xyz/menu.html")
+local Dui = MachoCreateDui("https://daytonhate1234-beep.github.io/euphoria-menu/menu.html")
 local MenuOpen = false
 local isTyping = false
 local capsLockOn = false
