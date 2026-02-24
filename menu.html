@@ -1,1612 +1,883 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JiGgY MeNu</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blossom.Lua</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: transparent;
+            color: #fff;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
 
-  :root {
-    --bg: #0a0a0f;
-    --panel: #0e0e18;
-    --border: #1e1e3a;
-    --accent: #7b2fff;
-    --accent2: #ff2faa;
-    --text: #e0e0ff;
-    --muted: #6060a0;
-    --on: #2fff7b;
-    --off: #ff2f2f;
-    --hover: #1a1a2e;
-    --selected: #15152a;
-  }
+        /* Intro Overlay */
+        .intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: transparent;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 0;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
 
-  html, body {
-    width: 100%; height: 100%;
-    background: transparent;
-    font-family: 'Rajdhani', sans-serif;
-    color: var(--text);
-    overflow: hidden;
-    user-select: none;
-  }
+        .intro-overlay.show {
+            opacity: 1;
+        }
 
-  #root {
-    display: none;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 780px;
-    height: 520px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    box-shadow: 0 0 60px rgba(123,47,255,0.15), 0 0 120px rgba(123,47,255,0.05), inset 0 0 40px rgba(0,0,0,0.8);
-    display: none;
-    flex-direction: column;
-    overflow: hidden;
-  }
+        .intro-overlay.hidden {
+            opacity: 0;
+        }
 
-  #root.visible { display: flex; }
+        .intro-gif {
+            max-width: 50%;
+            max-height: 50%;
+            object-fit: contain;
+            margin-top: -5%;
+        }
 
-  /* HEADER */
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    height: 44px;
-    background: linear-gradient(90deg, #0e0e18, #12122a, #0e0e18);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
+        .menu-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 0;
+            filter: drop-shadow(0 10px 40px rgba(0, 0, 0, 0.5));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
 
-  .header-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 13px;
-    font-weight: 900;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+        .menu-wrapper.visible {
+            opacity: 1;
+        }
 
-  .header-controls {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
+        /* Tab Sidebar */
+        .tab-sidebar {
+            width: 220px;
+            background: linear-gradient(180deg, rgb(25, 20, 30), rgb(35, 25, 40));
+            border-radius: 12px 0 0 12px;
+            border: 1px solid rgba(255, 182, 193, 0.4);
+            border-right: none;
+            padding: 20px 0;
+        }
 
-  .header-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-  }
+        .menu-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 182, 193, 0.3);
+            margin-bottom: 10px;
+        }
 
-  .dot-red { background: #ff5f57; }
-  .dot-yellow { background: #febc2e; }
-  .dot-green { background: #28c840; }
+        .menu-logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffb6c1, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+        }
 
-  /* TAB BAR */
-  .tabs {
-    display: flex;
-    align-items: stretch;
-    height: 36px;
-    background: var(--panel);
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto;
-    flex-shrink: 0;
-  }
+        .menu-logo img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
 
-  .tabs::-webkit-scrollbar { height: 2px; }
-  .tabs::-webkit-scrollbar-track { background: transparent; }
-  .tabs::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+        .tab-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+            position: relative;
+        }
 
-  .tab {
-    display: flex;
-    align-items: center;
-    padding: 0 16px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--muted);
-    cursor: default;
-    white-space: nowrap;
-    border-right: 1px solid var(--border);
-    transition: all 0.15s;
-    position: relative;
-    min-width: fit-content;
-  }
+        .tab-item:hover {
+            background: rgba(255, 182, 193, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+        }
 
-  .tab.active {
-    color: var(--text);
-    background: var(--bg);
-  }
+        .tab-item.active {
+            background: rgba(255, 182, 193, 0.25);
+            border-left-color: #ffb6c1;
+            color: #fff;
+        }
 
-  .tab.active::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-  }
+        .tab-item.active::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 8px 0 8px 8px;
+            border-color: transparent transparent transparent rgb(40, 30, 45);
+        }
 
-  /* BODY */
-  .body {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
+        /* Content Panel */
+        .content-panel {
+            width: 550px;
+            background: linear-gradient(180deg, rgb(30, 25, 35), rgb(40, 30, 45));
+            border-radius: 0 12px 12px 0;
+            border: 1px solid rgba(255, 182, 193, 0.4);
+            border-left: none;
+            display: flex;
+            flex-direction: column;
+            max-height: 650px;
+        }
 
-  /* SIDEBAR */
-  .sidebar {
-    width: 220px;
-    border-right: 1px solid var(--border);
-    background: var(--panel);
-    overflow-y: auto;
-    flex-shrink: 0;
-    display: none;
-  }
+        .content-header {
+            padding: 25px;
+            border-bottom: 1px solid rgba(255, 182, 193, 0.3);
+            background: linear-gradient(135deg, rgba(255, 182, 193, 0.15), rgba(255, 105, 180, 0.15));
+        }
 
-  .sidebar.visible { display: block; }
+        .content-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
 
-  .sidebar::-webkit-scrollbar { width: 3px; }
-  .sidebar::-webkit-scrollbar-track { background: transparent; }
-  .sidebar::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+        .content-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
 
-  /* CONTENT */
-  .content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 8px;
-  }
+        .content-body::-webkit-scrollbar {
+            width: 8px;
+        }
 
-  .content::-webkit-scrollbar { width: 3px; }
-  .content::-webkit-scrollbar-track { background: transparent; }
-  .content::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+        .content-body::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
 
-  /* ITEMS */
-  .item {
-    display: flex;
-    align-items: center;
-    padding: 8px 12px;
-    margin-bottom: 2px;
-    border-radius: 3px;
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    cursor: default;
-    transition: all 0.1s;
-    border: 1px solid transparent;
-    min-height: 36px;
-  }
+        .content-body::-webkit-scrollbar-thumb {
+            background: rgba(255, 182, 193, 0.6);
+            border-radius: 4px;
+        }
 
-  .item.selected {
-    background: var(--selected);
-    border-color: var(--accent);
-    color: #fff;
-  }
+        .content-body::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 182, 193, 0.8);
+        }
 
-  .item.selected::before {
-    content: '▸';
-    color: var(--accent);
-    margin-right: 8px;
-    font-size: 10px;
-  }
+        /* Grid Layout */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
 
-  .item:not(.selected)::before {
-    content: '▸';
-    color: transparent;
-    margin-right: 8px;
-    font-size: 10px;
-  }
+        .grid-item {
+            background: rgba(255, 182, 193, 0.1);
+            padding: 18px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 182, 193, 0.25);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+            scroll-margin-top: 10px;
+            scroll-margin-bottom: 10px;
+        }
 
-  .item-label { flex: 1; }
+        .grid-item:hover {
+            background: rgba(255, 182, 193, 0.2);
+            border-color: rgba(255, 182, 193, 0.5);
+            transform: translateY(-2px);
+        }
 
-  .item-state {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    padding: 2px 7px;
-    border-radius: 2px;
-  }
+        .grid-item.selected {
+            background: linear-gradient(135deg, rgba(255, 182, 193, 0.35), rgba(255, 105, 180, 0.35));
+            border-color: #ffb6c1;
+            box-shadow: 0 0 15px rgba(255, 182, 193, 0.5);
+        }
 
-  .item-state.on { background: rgba(47,255,123,0.15); color: var(--on); border: 1px solid rgba(47,255,123,0.3); }
-  .item-state.off { background: rgba(255,47,47,0.15); color: var(--off); border: 1px solid rgba(255,47,47,0.3); }
+        /* List Layout */
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
-  .item.label-type {
-    color: var(--muted);
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 12px 12px 4px;
-    cursor: default;
-    border-color: transparent;
-  }
+        .list-item {
+            background: rgba(255, 182, 193, 0.1);
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 182, 193, 0.25);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            scroll-margin-top: 10px;
+            scroll-margin-bottom: 10px;
+        }
 
-  .item.label-type::before { display: none; }
+        .list-item:hover {
+            background: rgba(255, 182, 193, 0.2);
+            border-color: rgba(255, 182, 193, 0.5);
+            transform: translateX(5px);
+        }
 
-  /* INPUT */
-  .item.input-type {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 4px;
-    padding: 8px 12px;
-  }
+        .list-item.selected {
+            background: linear-gradient(135deg, rgba(255, 182, 193, 0.35), rgba(255, 105, 180, 0.35));
+            border-color: #ffb6c1;
+            box-shadow: 0 0 15px rgba(255, 182, 193, 0.5);
+        }
 
-  .item.input-type .input-label {
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
+        .resource-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
 
-  .item.input-type .input-value {
-    font-size: 13px;
-    color: var(--text);
-    min-height: 20px;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 2px;
-  }
+        .resource-status.started {
+            background: rgba(0, 0, 0, 0.6);
+            color: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.8);
+        }
 
-  .item.input-type.selected .input-value {
-    border-color: var(--accent);
-  }
+        .resource-status.stopped {
+            background: rgba(0, 0, 0, 0.6);
+            color: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.8);
+        }
 
-  .item.input-type .input-value.typing {
-    border-color: var(--accent2);
-  }
+        /* Form Layout */
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
 
-  .cursor {
-    display: inline-block;
-    width: 2px;
-    height: 14px;
-    background: var(--accent2);
-    vertical-align: middle;
-    margin-left: 1px;
-    animation: blink 0.7s infinite;
-  }
+        .form-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
-  @keyframes blink { 0%,50% { opacity: 1; } 51%,100% { opacity: 0; } }
+        .form-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+        }
 
-  /* GRID */
-  .grid-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    padding: 4px;
-  }
+        .form-input {
+            background: rgba(255, 182, 193, 0.1);
+            border: 1px solid rgba(255, 182, 193, 0.35);
+            border-radius: 8px;
+            padding: 12px 15px;
+            color: #fff;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            outline: none;
+        }
 
-  .grid-item {
-    padding: 10px 12px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    cursor: default;
-    transition: all 0.1s;
-    text-align: center;
-    min-height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+        .form-input:focus {
+            background: rgba(255, 182, 193, 0.15);
+            border-color: #ffb6c1;
+            box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.25);
+        }
 
-  .grid-item.selected {
-    background: var(--selected);
-    border-color: var(--accent);
-    color: #fff;
-    box-shadow: 0 0 10px rgba(123,47,255,0.2);
-  }
+        .form-input.typing {
+            border-color: #ff69b4;
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.3);
+            animation: pulse 1.5s infinite;
+        }
 
-  /* PLAYER OPTIONS */
-  .player-options {
-    background: var(--selected);
-    border: 1px solid var(--accent);
-    border-radius: 3px;
-    margin-top: 2px;
-    overflow: hidden;
-  }
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 0 5px rgba(255, 105, 180, 0.4);
+            }
+        }
 
-  .player-option {
-    padding: 7px 24px;
-    font-size: 12px;
-    color: var(--muted);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
 
-  .player-option:last-child { border-bottom: none; }
+        .form-button {
+            background: linear-gradient(135deg, #ffb6c1, #ff69b4);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
 
-  .player-option.selected {
-    color: var(--text);
-    background: rgba(123,47,255,0.1);
-  }
+        .form-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 182, 193, 0.5);
+        }
 
-  .player-option.selected::before {
-    content: '▸';
-    color: var(--accent);
-    font-size: 9px;
-  }
+        .form-button.selected {
+            box-shadow: 0 0 20px rgba(255, 182, 193, 0.7);
+            animation: buttonPulse 1s infinite;
+        }
 
-  .player-option:not(.selected)::before {
-    content: '▸';
-    color: transparent;
-    font-size: 9px;
-  }
+        @keyframes buttonPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
 
-  /* STATUS BAR */
-  .statusbar {
-    height: 26px;
-    background: var(--panel);
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 16px;
-    gap: 16px;
-    flex-shrink: 0;
-  }
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.4);
+        }
 
-  .status-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 10px;
-    letter-spacing: 1px;
-    color: var(--muted);
-  }
+        .empty-state-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 15px;
+            opacity: 0.5;
+        }
+        
+        .empty-state-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
 
-  .status-key {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    padding: 1px 5px;
-    font-family: 'Orbitron', monospace;
-    font-size: 8px;
-    color: var(--accent);
-  }
+        .empty-state-text {
+            font-size: 13px;
+        }
 
-  .tab-header {
-    padding: 10px 12px 6px;
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--accent);
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 6px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+        /* Controls Hint */
+        .controls-hint {
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-top: 1px solid rgba(255, 182, 193, 0.3);
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+        }
 
-  .tab-header::before {
-    content: '';
-    width: 3px;
-    height: 12px;
-    background: linear-gradient(180deg, var(--accent), var(--accent2));
-    border-radius: 2px;
-  }
+        .controls-hint span {
+            display: inline-block;
+            background: rgba(255, 182, 193, 0.25);
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin: 0 3px;
+            color: #ffb6c1;
+            font-weight: 600;
+        }
 
-  /* SCANLINE OVERLAY */
-  .scanlines {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.03) 2px,
-      rgba(0,0,0,0.03) 4px
-    );
-    pointer-events: none;
-    z-index: 100;
-  }
+        .controls-hint.typing-mode {
+            background: rgba(255, 105, 180, 0.25);
+            border-top-color: rgba(255, 105, 180, 0.4);
+        }
 
-  /* CORNER ACCENTS */
-  .corner {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    border-color: var(--accent);
-    border-style: solid;
-    z-index: 101;
-  }
+        .controls-hint.typing-mode span {
+            background: rgba(255, 105, 180, 0.35);
+            color: #ff69b4;
+        }
 
-  .corner.tl { top: 0; left: 0; border-width: 2px 0 0 2px; }
-  .corner.tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
-  .corner.bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
-  .corner.br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
 
-  .typing-indicator {
-    font-size: 10px;
-    color: var(--accent2);
-    letter-spacing: 1px;
-    animation: pulse 1s infinite;
-  }
+        .status-badge.on {
+            background: rgba(0, 0, 0, 0.6);
+            color: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.8);
+        }
 
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-</style>
+        .status-badge.off {
+            background: rgba(0, 0, 0, 0.6);
+            color: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.8);
+        }
+
+        /* Player Submenu */
+        .player-submenu {
+            margin-top: 10px;
+            padding: 15px;
+            background: rgba(255, 182, 193, 0.08);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 182, 193, 0.25);
+        }
+
+        .player-submenu-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffb6c1;
+            margin-bottom: 12px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 182, 193, 0.2);
+        }
+
+        .player-option {
+            background: rgba(255, 182, 193, 0.1);
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 182, 193, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            text-align: center;
+            scroll-margin-top: 20px;
+            scroll-margin-bottom: 20px;
+        }
+
+        .player-option:hover {
+            background: rgba(255, 182, 193, 0.2);
+            border-color: rgba(255, 182, 193, 0.4);
+            transform: translateX(3px);
+        }
+
+        .player-option.selected {
+            background: linear-gradient(135deg, rgba(255, 182, 193, 0.3), rgba(255, 105, 180, 0.3));
+            border-color: #ffb6c1;
+            box-shadow: 0 0 10px rgba(255, 182, 193, 0.4);
+        }
+
+        .list-item.has-submenu::after {
+            content: '›';
+            font-size: 18px;
+            color: #ffb6c1;
+            margin-left: 10px;
+        }
+
+    </style>
 </head>
 <body>
-<div id="root">
-  <div class="scanlines"></div>
-  <div class="corner tl"></div>
-  <div class="corner tr"></div>
-  <div class="corner bl"></div>
-  <div class="corner br"></div>
-
-  <div class="header">
-    <div class="header-title">JiGgY MeNu</div>
-    <div class="header-controls">
-      <div class="header-dot dot-red"></div>
-      <div class="header-dot dot-yellow"></div>
-      <div class="header-dot dot-green"></div>
+    <!-- Intro Overlay -->
+    <div class="intro-overlay" id="introOverlay">
+        <img src="https://cdn.imgchest.com/files/aad2b32db106.gif" alt="Loading" class="intro-gif">
     </div>
-  </div>
 
-  <div class="tabs" id="tabs"></div>
+    <div class="menu-wrapper" id="menuWrapper">
+        <div class="tab-sidebar">
+            <div class="menu-logo">
+                <h1>Blossom.Lua</h1>
+                <img src="https://i.ibb.co/23h3RGJ0/ab1309ecc60c68d25aa497888fe2e6ba.png" alt="Blossom Logo">
+            </div>
+            <div id="tab-list"></div>
+        </div>
 
-  <div class="body">
-    <div class="content" id="content"></div>
-  </div>
+        <div class="content-panel">
+            <div class="content-header">
+                <h2 id="content-title">Select a tab</h2>
+            </div>
+            <div class="content-body" id="content-body">
+                <div class="empty-state">
+                    <div class="empty-state-icon"><img src="https://cdn.imgchest.com/files/d7d0d21e8b3d.gif" alt="Flower"></div>
+                    <div class="empty-state-text">Use arrow keys to navigate tabs</div>
+                </div>
+            </div>
+            <div class="controls-hint" id="controlsHint">
+                <span>↑↓</span> Navigate • <span>Enter</span> Select • <span>Backspace</span> Back • <span>Delete</span> Close
+            </div>
+        </div>
+    </div>
 
-  <div class="statusbar">
-    <div class="status-item"><span class="status-key">↑↓</span> navigate</div>
-    <div class="status-item"><span class="status-key">←→</span> tabs</div>
-    <div class="status-item"><span class="status-key">ENTER</span> select</div>
-    <div class="status-item"><span class="status-key">ESC</span> back</div>
-    <div class="status-item"><span class="status-key">DEL</span> close</div>
-    <div id="typing-status" class="typing-indicator" style="display:none;">● TYPING</div>
-  </div>
-</div>
+    <script>
+        let menuState = null;
+        let isVisible = false;
 
-<script>
-  let state = null;
+        // Play intro animation on load
+        window.addEventListener('load', () => {
+            showIntroOverlay();
+        });
 
-  const playerOptionLabels = [
-    "Teleport To", "Bring To Me", "Give Weapons",
-    "Heal Player", "Kill Player", "Freeze Player",
-    "Spectate", "Explode", "Kick", "Ban"
-  ];
-
-  function renderTabs(tabs, activeTab) {
-    const container = document.getElementById('tabs');
-    container.innerHTML = '';
-    tabs.forEach((tab, i) => {
-      const el = document.createElement('div');
-      el.className = 'tab' + (i === activeTab ? ' active' : '');
-      el.textContent = tab.title;
-      container.appendChild(el);
-    });
-  }
-
-  function renderContent(state) {
-    const container = document.getElementById('content');
-    container.innerHTML = '';
-
-    const tab = state.tabs[state.activeTab];
-    if (!tab) return;
-
-    const header = document.createElement('div');
-    header.className = 'tab-header';
-    header.textContent = tab.header || tab.title;
-    container.appendChild(header);
-
-    if (!state.isContentPanelOpen) {
-      const hint = document.createElement('div');
-      hint.className = 'item label-type';
-      hint.textContent = 'Press ENTER to open panel';
-      container.appendChild(hint);
-      return;
-    }
-
-    const items = tab.items || [];
-
-    if (tab.type === 'grid') {
-      const grid = document.createElement('div');
-      grid.className = 'grid-container';
-      items.forEach((item, i) => {
-        const el = document.createElement('div');
-        el.className = 'grid-item' + (i === state.selection.index ? ' selected' : '');
-        el.textContent = item.label || '';
-        grid.appendChild(el);
-      });
-      container.appendChild(grid);
-      return;
-    }
-
-    items.forEach((item, i) => {
-      const isSelected = i === state.selection.index;
-
-      if (item.type === 'label') {
-        const el = document.createElement('div');
-        el.className = 'item label-type';
-        el.textContent = item.label || '';
-        container.appendChild(el);
-        return;
-      }
-
-      if (item.type === 'input') {
-        const el = document.createElement('div');
-        el.className = 'item input-type' + (isSelected ? ' selected' : '');
-        const labelEl = document.createElement('div');
-        labelEl.className = 'input-label';
-        labelEl.textContent = item.label || '';
-        const valueEl = document.createElement('div');
-        valueEl.className = 'input-value' + (state.isTyping && isSelected ? ' typing' : '');
-        const val = item.value || '';
-        if (state.isTyping && isSelected) {
-          valueEl.textContent = val || (item.placeholder || '');
-          if (!val) valueEl.style.color = 'var(--muted)';
-          const cur = document.createElement('span');
-          cur.className = 'cursor';
-          valueEl.appendChild(cur);
-        } else {
-          valueEl.textContent = val || item.placeholder || '';
-          if (!val) valueEl.style.color = 'var(--muted)';
-        }
-        el.appendChild(labelEl);
-        el.appendChild(valueEl);
-        container.appendChild(el);
-        return;
-      }
-
-      // button or list item
-      const el = document.createElement('div');
-      el.className = 'item' + (isSelected ? ' selected' : '');
-
-      const labelEl = document.createElement('span');
-      labelEl.className = 'item-label';
-
-      // Player list
-      if (tab.key === 'players' && item.playerId !== undefined) {
-        labelEl.textContent = item.label || '';
-        el.appendChild(labelEl);
-        container.appendChild(el);
-
-        if (item.showOptions) {
-          const opts = document.createElement('div');
-          opts.className = 'player-options';
-          playerOptionLabels.forEach((opt, oi) => {
-            const oel = document.createElement('div');
-            oel.className = 'player-option' + (oi === item.selectedOption ? ' selected' : '');
-            oel.textContent = opt;
-            opts.appendChild(oel);
-          });
-          container.appendChild(opts);
-        }
-        return;
-      }
-
-      // Resource list
-      if (tab.key === 'resources' && item.state) {
-        labelEl.textContent = item.label || '';
-        el.appendChild(labelEl);
-        const stateEl = document.createElement('span');
-        stateEl.className = 'item-state ' + (item.state === 'started' ? 'on' : 'off');
-        stateEl.textContent = item.state === 'started' ? 'ON' : 'OFF';
-        el.appendChild(stateEl);
-        container.appendChild(el);
-        return;
-      }
-
-      labelEl.textContent = item.label || '';
-      el.appendChild(labelEl);
-
-      if (item.state !== undefined) {
-        const stateEl = document.createElement('span');
-        stateEl.className = 'item-state ' + (item.state === 'on' ? 'on' : 'off');
-        stateEl.textContent = item.state === 'on' ? 'ON' : 'OFF';
-        el.appendChild(stateEl);
-      }
-
-      container.appendChild(el);
-    });
-  }
-
-  function render(newState) {
-    state = newState;
-    const root = document.getElementById('root');
-
-    if (!state) { root.classList.remove('visible'); return; }
-
-    root.classList.add('visible');
-    renderTabs(state.tabs || [], state.activeTab || 0);
-    renderContent(state);
-
-    const typingStatus = document.getElementById('typing-status');
-    if (typingStatus) typingStatus.style.display = state.isTyping ? 'block' : 'none';
-
-    // Scroll selected item into view
-    const selected = document.querySelector('.item.selected, .grid-item.selected');
-    if (selected) selected.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }
-
-  window.addEventListener('message', function(e) {
-    try {
-      const msg = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-      if (msg.action === 'update') render(msg.data);
-      else if (msg.action === 'show') render(msg.data);
-      else if (msg.action === 'hide') {
-        document.getElementById('root').classList.remove('visible');
-      }
-    } catch(err) {}
-  });
-</script>
-</body>
-</html>]]
-
-local menuHTMLEncoded = menuHTML:gsub('"', '\\"'):gsub('\n', '\\n')
-local duiURL = "data:text/html;charset=utf-8," .. menuHTML:gsub(" ", "%%20"):gsub("\n", "%%0A"):gsub('"', "%%22"):gsub("'", "%%27"):gsub("<", "%%3C"):gsub(">", "%%3E"):gsub("{", "%%7B"):gsub("}", "%%7D"):gsub("#", "%%23"):gsub("&", "%%26"):gsub("=", "%%3D"):gsub(":", "%%3A"):gsub(";", "%%3B"):gsub(",", "%%2C"):gsub("/", "%%2F"):gsub("\\", "%%5C"):gsub("%(", "%%28"):gsub("%)", "%%29"):gsub("%[", "%%5B"):gsub("%]", "%%5D"):gsub("|", "%%7C"):gsub("@", "%%40"):gsub("%$", "%%24"):gsub("!", "%%21"):gsub("%?", "%%3F"):gsub("%%", "%%25")
-
--- Use a blob approach: write HTML to a temp NUI file and load it
--- Since Macho supports arbitrary URLs, we use the data URI approach
--- For maximum compatibility, write the HTML to a resource file instead
-
-local Dui = MachoCreateDui("data:text/html," .. menuHTML)
-local MenuOpen = false
-local isTyping = false
-local capsLockOn = false
-local MenuPosition = {x = 960, y = 540}
-local LockedResources = {}
-local isRobberyActive = false
-
-local isVehicleBoostEnabled = false
-local isPlayerCrasherActive = false
-local isVehicleUnlockerActive = false
-local espEnabled = false
-local idsEnabled = false
-local namesEnabled = false
-local showSelfSkeleton = false
-local crosshairEnabled = false
-local fovCircleEnabled = false
-
-local logState = {foundLogs = {}, stoppedLogs = {}}
-local logResourceNames = {"JD_logsV3", "JD_logs", "mc9-logs", "discord_logs", "logs", "lmx_logs", "crp_logs", "fusion_logs", "ox_logs", "zs-logging", "qb-logs", "esx_logs", "legacy_logs", "server_logs", "player_logs", "admin_logs", "anticheat_logs", "tracker_logs", "monitor_logs", "custom_logs", "audit_logs", "action_logs", "chat_logs", "event_logs", "game_logs", "debug_logs", "user_logs", "security_logs", "activity_logs", "performance_logs", "system_logs", "connection_logs", "error_logs", "warning_logs", "info_logs", "ox_inventory_logs", "analytics_logs", "report_logs", "transaction_logs", "ban_logs", "kick_logs", "violations_logs", "mod_logs", "script_logs", "resource_logs", "inventory_logs", "xp_logs", "money_logs", "shop_logs", "bank_logs", "vehicle_logs", "job_logs", "gang_logs", "mission_logs", "quest_logs", "combat_logs", "damage_logs", "healing_logs", "item_logs", "weapon_logs", "spawn_logs", "despawn_logs", "npc_logs", "JDlogs", "mission_tracking_logs", "event_tracking_logs"}
-
-local function getClosestPlayerInView(maxDist)
-    local camCoords = GetGameplayCamCoord()
-    local camRot = GetGameplayCamRot(2)
-    local function RotationToDirection(rot)
-        local z = math.rad(rot.z)
-        local x = math.rad(rot.x)
-        local num = math.abs(math.cos(x))
-        return vector3(-math.sin(z) * num, math.cos(z) * num, math.sin(x))
-    end
-    local direction = RotationToDirection(camRot)
-    local closestPed = nil
-    local minDist = maxDist or 15.0
-    for _, pid in ipairs(GetActivePlayers()) do
-        local ped = GetPlayerPed(pid)
-        if ped ~= PlayerPedId() then
-            local pos = GetEntityCoords(ped)
-            local toPed = pos - camCoords
-            local proj = toPed.x * direction.x + toPed.y * direction.y + toPed.z * direction.z
-            if proj > 0 then
-                local point = camCoords + direction * proj
-                local dist = #(pos - point)
-                if dist < 2.0 then
-                    local camToPed = #(pos - camCoords)
-                    if camToPed < minDist then
-                        minDist = camToPed
-                        closestPed = ped
-                    end
-                end
-            end
-        end
-    end
-    return closestPed
-end
-
-local function toggleVehicleBoost()
-    isVehicleBoostEnabled = not isVehicleBoostEnabled
-    if isVehicleBoostEnabled then
-        MachoMenuNotification("JiGgY MeNu", "Vehicle boost is ON fucking enjoy it.", 3)
-    else
-        MachoMenuNotification("JiGgY MeNu", "Vehicle boost is now OFF.", 3)
-    end
-end
-
-local function toggleVehicleUnlocker()
-    isVehicleUnlockerActive = not isVehicleUnlockerActive
-    if isVehicleUnlockerActive then
-        MachoMenuNotification("JiGgY MeNu", "Vehicle Unlocker Enabled. Press E on a vehicle.", 3)
-    else
-        MachoMenuNotification("JiGgY MeNu", "Vehicle Unlocker Disabled.", 3)
-    end
-end
-
-local function inject(code)
-    MachoInjectResource("any", code)
-end
-
-local function SendToDui(action, data)
-    if Dui and MenuOpen then
-        MachoSendDuiMessage(Dui, json.encode({action = action, data = data}))
-    end
-end
-
-local giveItemState = {turn = 1, akIndex = 1}
-local specialCharMap = {
-    [0xC0] = {normal = "`", shifted = "~"},
-    [0x31] = {normal = "1", shifted = "!"},
-    [0x32] = {normal = "2", shifted = "@"},
-    [0x33] = {normal = "3", shifted = "#"},
-    [0x34] = {normal = "4", shifted = "$"},
-    [0x35] = {normal = "5", shifted = "%"},
-    [0x36] = {normal = "6", shifted = "^"},
-    [0x37] = {normal = "7", shifted = "&"},
-    [0x38] = {normal = "8", shifted = "*"},
-    [0x39] = {normal = "9", shifted = "("},
-    [0x30] = {normal = "0", shifted = ")"},
-    [0xBD] = {normal = "-", shifted = "_"},
-    [0xBB] = {normal = "=", shifted = "+"},
-    [0xDB] = {normal = "[", shifted = "{"},
-    [0xDD] = {normal = "]", shifted = "}"},
-    [0xDC] = {normal = "\\", shifted = "|"},
-    [0xBA] = {normal = ";", shifted = ":"},
-    [0xDE] = {normal = "'", shifted = '"'},
-    [0xBC] = {normal = ",", shifted = "<"},
-    [0xBE] = {normal = ".", shifted = ">"},
-    [0xBF] = {normal = "/", shifted = "?"}
-}
-
-local function safeResourceName(name)
-    if not name then
-        return "unknown"
-    end
-    return string.gsub(tostring(name), "[%c\128-\255]", "?")
-end
-
-local function handleRobberyAttempt()
-    local selfCoords = GetEntityCoords(PlayerPedId())
-    for _, player in ipairs(GetActivePlayers()) do
-        if player ~= PlayerId() then
-            local ped = GetPlayerPed(player)
-            if DoesEntityExist(ped) then
-                if #(GetEntityCoords(ped) - selfCoords) <= 2.5 then
-                    ExecuteCommand("steal")
-                    ExecuteCommand("rob")
-                    MachoMenuNotification("JiGgY MeNu", "Robbing Nigga.", 3)
-                    return
-                end
-            end
-        end
-    end
-    MachoMenuNotification("JiGgY MeNu", "Nigga Nobody Is Near You To Rob.", 3)
-end
-
--- ALL TRIGGER HANDLERS
-local triggerHandlers = {
-    ak_item = function(itemInput, amountInput, trigger)
-        for i = giveItemState.akIndex, #trigger.res + giveItemState.akIndex - 1 do
-            local idx = (i - 1) % #trigger.res + 1
-            local resName = trigger.res[idx]
-            if MachoResourceInjectable(resName) then
-                giveItemState.akIndex = (idx % #trigger.res) + 1
-                local x, y, z = table.unpack(GetEntityCoords(PlayerPedId()))
-                local code = ([[Citizen.CreateThread(function() pcall(function() TriggerServerEvent(%q,%q,{['phone']=0},%d,0) end); DoScreenFadeOut(1);Citizen.Wait(1000);SetEntityCoordsNoOffset(PlayerPedId(),%f,%f,%f,false,false,false);Citizen.Wait(1000);DoScreenFadeIn(1000) end)]]):format(resName .. ":process", itemInput, amountInput, x, y, z)
-                inject(code)
-                return true
-            end
-        end
-        return false
-    end,
-    nails_money = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("delivery:giveRewardnails",%d) end)'):format(amountInput))
-        return true
-    end,
-    handbag_money = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("delivery:giveRewardhandbags",%d) end)'):format(amountInput))
-        return true
-    end,
-    sneaker_money = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("delivery:giveRewardShoes",%d) end)'):format(amountInput))
-        return true
-    end,
-    caps_money = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("delivery:giveRewardCaps",%d) end)'):format(amountInput))
-        return true
-    end,
-    generic_money = function(itemInput, amountInput)
-        inject(("pcall(function() TriggerServerEvent('ak47_qb_drugmanagerv2:shop:buy', '53.15-1478.79', {['buyprice']=0, ['currency']='cash', ['name']='%s', ['sellprice']=0, ['label']='JiGgY MeNu On Top Nigga'}, %d) end)"):format(itemInput, amountInput))
-        return true
-    end,
-    hotdog_money = function(itemInput, amountInput)
-        inject(("pcall(function() local ped=GetPlayerPed(-1) local pedCoords=GetEntityCoords(ped) local HotdogsForSale=1 local SellingPrice=%d TriggerServerEvent('qb-hotdogjob:server:Sell', pedCoords, HotdogsForSale, SellingPrice) end)"):format(amountInput))
-        return true
-    end,
-    ak47_inventory = function(itemInput, amountInput)
-        inject(([[TriggerServerEvent('ak47_inventory:buyItemDrag',{fromInv={identifier=nil,slot=1,slotData={amount=%d,close=true,count=999999999999999,description="CodePlug Found Ts Lol",info={account="cash",buyPrice=0},label="CodePlug Too Good Lol",name="%s",quality=100,slot=1,type="item",weight=0}},toInv={identifier=nil,slot=1,slotData={slot=1}}} )]]):format(amountInput, itemInput))
-        return true
-    end,
-    shop_purchase = function(itemInput, amountInput)
-        local randomId = "codeplug" .. math.random(1000, 99999)
-        inject(('pcall(function() TriggerServerEvent("shop:purchaseItem2", "%s", "%s", 0) end)'):format(randomId, itemInput))
-        return true
-    end,
-    cl_pizzeria = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("CL-Pizzeria:AddItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    solstice_moonshine = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("SolsticeMoonshineV2:server:AddItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    tk_smokev2 = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("Tk_smokev2:server:AddItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    ox_cb_ws_sellshop = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("__ox_cb_ws_sellshop:sellItem", "sellshop", "ws_sellshop:sellItem:17692", { currency = "money", item = "%s", price = 9999999999, quantity = %d }) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    adminplus_selldrugs = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerEvent("stasiek_selldrugsv2:findClient",{ ["i"] = 8, ["label"] = "CodePlugFuckedUrCity", ["type"] = "CodePlugFuckedUrCity", ["zone"] = "The Meat Quarter", ["price"] = %d, ["count"] = 0 }) end)'):format(amountInput))
-        return true
-    end,
-    ak47_drugmanager = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("ak47_drugmanager:pickedupitem","%s","%s",%d) end)'):format(itemInput, itemInput, amountInput))
-        return true
-    end,
-    ak47_drugmanagerv2 = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("ak47_drugmanagerv2:shop:buy", "-1146.444941.22", { buyprice = 0, currency = "money", label = "codeplug", name = "%s", sellprice = 69696969 }, %d ) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    ak47_prospecting_reward = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("ak47_prospecting:reward", %d) end)'):format(amountInput))
-        return true
-    end,
-    ak47_prospecting_sell = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("ak47_prospecting:sell","cash",%d,9999999999) end)'):format(amountInput))
-        return true
-    end,
-    ak4y_fishing = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("ak4y-advancedFishing:addItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    ak4y_case_opening = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("ak4y-caseOpening:addGoldCoin", %d) end)'):format(amountInput))
-        return true
-    end,
-    ak4y_playtime_shop = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("ak4y-playTimeShop:addCoin", %d) end)'):format(amountInput))
-        return true
-    end,
-    angelicxs_civilian_payment = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("angelicxs-CivilianJobs:Server:Payment", %d) end)'):format(amountInput))
-        return true
-    end,
-    angelicxs_civilian_item = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("angelicxs-CivilianJobs:Server:GainItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    apex_cluckinbell = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("apex_cluckinbell:client:addItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    apex_rexdiner = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("apex_rexdiner:client:addItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    ars_hunting = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("ars_hunting:sellBuyItem", { item = "%s", price = 1, quantity = %d, buy = true }) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    ars_vvsgrillz = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("ars_vvsgrillz_v2:Buyitem", "grillz", { items = {{ id = "%s", quantity = %d, price = 0, stock = 999999, totalPrice = 0 }}, method = "bank", total = 0 }, "bank") end)'):format(itemInput, amountInput))
-        return true
-    end,
-    ars_vvsguns = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("ars_vvsguns:Buyitem", "vvsguns", { items = { { id = "%s", image = "codeplug", name = "codeplug", page = 2, price = 0, quantity = %d, stock = 9999999999, totalPrice = 0 } }, method = "cash", total = 0 }, "cash" ) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    ars_vvsjewelry = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("ars_vvsjewelry:Buyitem", "vvsjewelry", { items = { { id = "%s", image = "CodePlug", name = "CodePlugRunsUrCity", page = 2, price = 0, quantity = %d, stock = 999999999999999, totalPrice = 0 } }, method = "cash", total = 0 }, "cash" ) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    ars_whitewidow = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("ars_whitewidow_v2:Buyitem", { items = { { id = "%s", image = "CodeFinder", name = "CodeFinder", page = 1, price = 500, quantity = %d, stock = 999999999999999, totalPrice = 0 } }, method = "cash", total = 0 }, "cash") end)'):format(itemInput, amountInput))
-        return true
-    end,
-    av_business = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("av_business:addItem", "%s", %d, 9999) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    boii_drugs = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("boii-drugs:sv:AddItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    boii_moneylaunderer = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("boii-moneylaunderer:sv:PayPlayer", %d) end)'):format(amountInput))
-        return true
-    end,
-    boii_pawnshop = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("boii-pawnshop:sv:AddItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    boii_salvage_diving = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("boii-salavagediving:server:JewelleryBag") end)'))
-        return true
-    end,
-    boii_whitewidow = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("boii-whitewidow:server:AddItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    brutal_hunting = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("brutal_hunting:server:AddItem", { { amount = %d, item = "%s", label = "CodePlugRunsYou", price = 0 } }) end)'):format(amountInput, itemInput))
-        return true
-    end,
-    brutal_shop_robbery = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("brutal_shop_robbery:server:AddItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    cfx_tcd_starter = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("cfx-tcd-starterpack:ClaimStarterpack") end)'))
-        return true
-    end,
-    core_crafting = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("core_crafting:itemCrafted", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    d3mba_heroin = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("d3MBA-heroin:server:ShopBuyItem", { Amount = %d, ItemName = "%s", Price = 0 }) end)'):format(amountInput, itemInput))
-        return true
-    end,
-    dcweedroll = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("weedroll:additem","%s",%d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    dcweedrollnew = function(itemInput, amountInput)
-        inject(('pcall(function) TriggerServerEvent("weedroll:additem","%s",%d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    devcore_needs = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("devcore_needs:server:AddItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    devcore_smokev2 = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("devcore_smokev2:server:AddItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    dusa_pets = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("dusa-pets:addItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    dusa_pet_shop = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("__ox_cb_dusa_pets:cb:canBuyItem", "dusa_pet", "dusa_pets:cb:canBuyItem", { ["data"] = { [1] = { ["name"] = "CodePlugRunsU", ["img"] = "bed2.png", ["detail"] = "A nice sleep place for your pet", ["item"] = "%s", ["count"] = %d, ["totalPrice"] = 0, ["price"] = 0, }, }, ["account"] = "cash", }) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    dv_donut_delivery = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("dv-donutdeliveryjob:Payment", %d) end)'):format(amountInput))
-        return true
-    end,
-    esx_weashop = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("esx_weashop:buyItem", "%s", %d, "BlackWeashop") end)'):format(itemInput, amountInput))
-        return true
-    end,
-    ez_lib = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("ez_lib:server:AddItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    fivecode_camping = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("fivecode_camping:callCallback", "fivecode_camping:shopPay", 0, { ["price"] = 0, ["item"] = "%s", ["amount"] = %d, ["label"] = "CODEPLUG RUNS U" }, { ["args"] = { ["payment"] = { ["bank"] = true, ["cash"] = true } }, ["entity"] = 9218, ["distance"] = 0.64, ["hide"] = false, ["type"] = "bank", ["label"] = "Open Shop", ["coords"] = "vector3(-773.2181, 5597.66, 33.97217)", ["name"] = "npcShop" }) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    food_mechanics = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("food_mechanics:server:toggleItem", true, "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    forge_starter = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("forge-starter:claimReward", "%s") end)'):format(itemInput))
-        return true
-    end,
-    fs_placeables = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("fs_placeables:placeonground","%s",%d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    fuksus_shops = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("__ox_cb_fuksus-shops:buyItems", "fuksus-shops", "fuksus-shops:buyItems", { ["payment"] = "bank", ["items"] = { [1] = { ["amount"] = %d, ["label"] = "CodePlugOnTop", ["price"] = 0, ["name"] = "%s", }, }, }) end)'):format(amountInput, itemInput))
-        return true
-    end,
-    gardener_job = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("gardenerjob:payment",%d) end)'):format(amountInput))
-        return true
-    end,
-    guatau_consumibles = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("virus_consumibles:server:toggleItem", true, "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    hg_wheel = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("hg-wheel:server:giveitem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    horizon_payment = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("horizon_paymentsystem:giveItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    complete_hunting = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("complete_hunting:server:giveReward", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    inside_fruitpicker = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("inside-fruitpicker:Payout", %d) end)'):format(amountInput))
-        return true
-    end,
-    inverse_consumables = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("inverse-consumables:server:toggleItem", true, "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    it_lib = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("it-lib:server:AddItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    jg_mechanic = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerEvent("jg-mechanic:client:input-shop-purchase-qty", { item = "%s", price = 0, mechanicId = "MECHANIC ID HERE", shopIndex = 1 }) end)'):format(itemInput))
-        return true
-    end,
-    jim_bakery = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("jim-bakery:server:toggleItem", true, "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    jim_beanmachine = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("jim-beanmachine:server:toggleItem", true, "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    jim_burgershot = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("jim-burgershot:server:toggleItem", true, "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    jim_catcafe = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("jim-catcafe:server:toggleItem", true, "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    jim_consumables = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("jim-consumables:server:toggleItem", true, "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    jim_mechanic = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("jim-mechanic:server:toggleItem", true, "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    jim_mining = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("jim-mining:server:toggleItem", true, "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    jim_pizzathis = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("jim-pizzathis:server:toggleItem", true, "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    jim_recycle = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("jim-recycle:server:toggleItem", true, "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    jim_shops_blackmarket = function(itemInput, amountInput)
-        inject(('pcall(function() Config.Goodies = { label = "Blackmarket", slots = 1, items = { [1] = { name = "%s", price = 0, amount = %d, info = {}, type = "item", slot = 1 } } } end)'):format(itemInput, amountInput))
-        return true
-    end,
-    jim_shops_open = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("jim-shops:ShopOpen", "shop", "illegalshit", Config.Goodies) end)'))
-        return true
-    end,
-    kaves_drugsv2 = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("kaves_drugsv2:server:giveItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    mt_restaurants = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("mt-restaurants:server:AddItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    mt_printers = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("__ox_cb_mt_printers:server:itemActions", "mt_printers", "mt_printers:server:itemActions:codeplug", "%s", "add") end)'):format(itemInput))
-        return true
-    end,
-    nx_cayo = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("nx-cayo:server:AddItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    okok_crafting = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("okokCrafting:claimAll", "paletogeneral", { ["paletogeneral"] = { [1] = { ["item"] = "%s", ["randomID"] = 431916296, ["recipe"] = { [1] = { [1] = "cash", [2] = 1, [3] = "true", [4] = "false" } }, ["suc"] = true, ["xp"] = 6, ["itemName"] = "Pistol", ["time"] = 0, ["amount"] = %d, ["isPending"] = false, ["isDone"] = true, ["isItem"] = true, ["isDis"] = false, ["sucPC"] = 85 } } }) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    pug_business_creator = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("Pug:server:NewGivBusinessItemAfterHacks", true, "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    pug_chopping = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("Pug:server:GiveChoppingCarPay", %d) end)'):format(amountInput))
-        return true
-    end,
-    pug_fishing = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("Pug:server:GiveFish", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    pug_robbery_creator = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("Pug:server:RobberyGiveItem", true, "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    qb_crafting = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("qb-crafting:server:receiveItem", "%s", {}, %d, 0) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    qb_drugs = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("qb-drugs:server:giveDrugs", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    qb_garbage_job = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("qb-garbagejob:server:PayShift", %d, "") end)'):format(amountInput))
-        return true
-    end,
-    qb_hotdog_job = function(itemInput, amountInput)
-        inject(('pcall(function() local ped = GetPlayerPed(-1) local pedCoords = GetEntityCoords(ped) local HotdogsForSale = 1 local SellingPrice = %d TriggerServerEvent("qb-hotdogjob:server:Sell", pedCoords, HotdogsForSale, SellingPrice) end)'):format(amountInput))
-        return true
-    end,
-    qb_recycle_job = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("recycle:giveReward", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    qb_trash_search = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("qb-trashsearch:server:givemoney", math.random(%d, 9999999999999999)) end)'):format(amountInput))
-        return true
-    end,
-    qb_warehouse = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("inside-warehouse:Payout", %d) end)'):format(amountInput))
-        return true
-    end,
-    rm_camperv = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("camperv:server:giveItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    ry_rent = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("ry-vehiclerental:giveMoney", %d) end)'):format(amountInput))
-        return true
-    end,
-    savana_trucker = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("savana-truckerJob:addXpAndMoney", %d, %d) end)'):format(amountInput, amountInput))
-        return true
-    end,
-    sayer_jukebox = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("sayer-jukebox:AddItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    sell_usb = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerEvent("sell_usb:findClient", { i = 8, label = "CodePlugRunsYourShit", type = "codeplug", zone = "The Meat Quarter", price = %d, count = 0 }) end)'):format(amountInput))
-        return true
-    end,
-    snipe_boombox = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("snipe-boombox:server:pickup", %d, vector3(0.0, 0.0, 0.0), "%s") end)'):format(amountInput, itemInput))
-        return true
-    end,
-    solos_cashier = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("solos-cashier:server:addmoney", "bank", %d) end)'):format(amountInput))
-        return true
-    end,
-    solos_food = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("solos-food:server:itemadd", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    solos_hookah = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("solos-hookah:server:Buy-Item", "%s", %d, 0) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    solos_jointroll = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("solos-jointroll:server:ItemAdd", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    solos_joints = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("solos-joints:server:itemadd", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    solos_methlab = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("solos-methlab:server:itemadd", "%s", %d, true) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    solos_moneywash = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("solos-moneywash:server:ItemAdd", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    solos_restaurants = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("solos-food:server:itemadd", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    t1ger_gangsystem = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("t1ger_lib:server:addItem", "%s", %d, "codeplugrunsu") end)'):format(itemInput, amountInput))
-        return true
-    end,
-    t1ger_lib = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("t1ger_lib:server:addItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    xmmx_letscookplus = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("xmmx_letscookplus:server:BuyItems", { totalCost = 0, cart = { { name = "%s", quantity = %d } } }, "bank") end)'):format(itemInput, amountInput))
-        return true
-    end,
-    zat_farming = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("zat-farming:server:GiveItem", "%s", %d) end)'):format(itemInput, amountInput))
-        return true
-    end,
-    zat_weed = function(itemInput, amountInput)
-        inject(('pcall(function() TriggerServerEvent("zat-weed:server:AddItem", "%s", nil, %d) end)'):format(itemInput, amountInput))
-        return true
-    end
-}
-
-local function RebuildTriggerFinderUI(state)
-    local triggerFinderTab
-    local tabIdx
-    for i, tab in ipairs(state.tabs) do
-        if tab.key == "trigger_finder" then
-            triggerFinderTab = tab
-            tabIdx = i
-            break
-        end
-    end
-    if not triggerFinderTab then
-        return
-    end
-
-    triggerFinderTab.items = {}
-
-    if not triggerFinderTab.selectedTrigger then
-        table.insert(triggerFinderTab.items, {
-            type = "button",
-            label = #triggerFinderTab.foundTriggers > 0 and "Scan For Triggers Again" or "Scan For Triggers",
-            action = function(s)
-                MachoMenuNotification("JiGgY MeNu", "Finding Triggers Nigga.", 3)
-                Citizen.Wait(250)
-                triggerFinderTab.foundTriggers = {}
-                local knownTriggers = {
-                    {id = "ak_item", name = "Any Item Trigger (SAFE)", type = "item", res = {"ak47_whitewidowv2", "ak47_cannabiscafev2", "ak47_khusland", "ak47_khusbites", "ak47_leafnlatte", "ak47_qb_cannabiscafev2", "ak47_qb_leafnlatte", "ak47_qb_khusland", "ak47_qb_khusbites", "ak47_qb_whitewidowv2"}, all = false},
-                    {id = "nails_money", name = "Money Trigger (SAFE)", type = "money", res = {"codewave-nails-phone"}, all = true},
-                    {id = "handbag_money", name = "Money Trigger (SAFE)", type = "money", res = {"codewave-handbag-phone"}, all = true},
-                    {id = "sneaker_money", name = "Money Trigger (SAFE)", type = "money", res = {"codewave-sneaker-phone"}, all = true},
-                    {id = "caps_money", name = "Money Trigger (SAFE)", type = "money", res = {"codewave-caps-client-phone"}, all = true},
-                    {id = "generic_money", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"ak47_qb_drugmanagerv2", "ak47_drugmanagerv2"}, all = false},
-                    {id = "hotdog_money", name = "Money Trigger (Medium Risk)", type = "money", res = {"qb-hotdogjob"}, all = true},
-                    {id = "ak47_inventory", name = "Any Item Trigger (SAFE)", type = "item", res = {"ak47_inventory", "ak47_qb_inventory"}, all = false},
-                    {id = "shop_purchase", name = "Palm Beach ANY ITEM (SAFE)", type = "item_only", res = {"PalmBeachMiamiMinimap"}, all = true},
-                    {id = "cl_pizzeria", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"CL-Pizzeria"}, all = false},
-                    {id = "solstice_moonshine", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"SolsticeMoonshineV2"}, all = false},
-                    {id = "tk_smokev2", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"Tk_smokev2"}, all = false},
-                    {id = "ox_cb_ws_sellshop", name = "Any Item Trigger (High Risk)", type = "item", res = {"__ox_cb_ws_sellshop"}, all = false},
-                    {id = "adminplus_selldrugs", name = "Any Event Trigger (High Risk)", type = "event", res = {"adminplus-selldrugs"}, all = false},
-                    {id = "ak47_drugmanager", name = "Any Item Trigger (SAFE)", type = "item", res = {"ak47_drugmanager"}, all = false},
-                    {id = "ak47_drugmanagerv2", name = "Any Item Trigger (SAFE)", type = "item", res = {"ak47_drugmanagerv2"}, all = false},
-                    {id = "ak47_prospecting_reward", name = "Give Scrap Items (SAFE)", type = "money", res = {"ak47_prospecting"}, all = false},
-                    {id = "ak47_prospecting_sell", name = "Money Trigger (SAFE)", type = "money", res = {"ak47_prospecting"}, all = false},
-                    {id = "ak4y_fishing", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"ak4y-advancedFishing"}, all = false},
-                    {id = "ak4y_case_opening", name = "Money Trigger (Medium Risk)", type = "money", res = {"ak4y-caseOpening"}, all = false},
-                    {id = "ak4y_playtime_shop", name = "Money Trigger (Medium Risk)", type = "money", res = {"ak4y-playTimeShop"}, all = false},
-                    {id = "angelicxs_civilian_payment", name = "Money Trigger (SAFE)", type = "money", res = {"angelicxs-civilianjobs"}, all = false},
-                    {id = "angelicxs_civilian_item", name = "Any Item Trigger (SAFE)", type = "item", res = {"angelicxs-civilianjobs"}, all = false},
-                    {id = "apex_cluckinbell", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"apex_cluckinbell"}, all = false},
-                    {id = "apex_rexdiner", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"apex_rexdiner"}, all = false},
-                    {id = "ars_hunting", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"ars_hunting"}, all = false},
-                    {id = "ars_vvsgrillz", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"ars_vvsgrillz_v2"}, all = false},
-                    {id = "ars_vvsguns", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"ars_vvsguns"}, all = false},
-                    {id = "ars_vvsjewelry", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"ars_vvsjewelry"}, all = false},
-                    {id = "ars_whitewidow", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"ars_whitewidow_v2"}, all = false},
-                    {id = "av_business", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"av_business"}, all = false},
-                    {id = "boii_drugs", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"boii-drugs"}, all = false},
-                    {id = "boii_moneylaunderer", name = "Money Trigger (Medium Risk)", type = "money", res = {"boii-moneylaunderer"}, all = false},
-                    {id = "boii_pawnshop", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"boii-pawnshop"}, all = false},
-                    {id = "boii_salvage_diving", name = "Any Event Trigger (Medium Risk)", type = "event", res = {"boii-salavagediving"}, all = false},
-                    {id = "boii_whitewidow", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"boii_whitewidow"}, all = false},
-                    {id = "brutal_hunting", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"brutal_hunting"}, all = false},
-                    {id = "brutal_shop_robbery", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"brutal_shop_robbery"}, all = false},
-                    {id = "cfx_tcd_starter", name = "Any Event Trigger (Medium Risk)", type = "event", res = {"cfx-tcd-starterpack"}, all = false},
-                    {id = "core_crafting", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"core_crafting"}, all = false},
-                    {id = "d3mba_heroin", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"d3MBA-heroin"}, all = false},
-                    {id = "dcweedroll", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"dcweedroll"}, all = false},
-                    {id = "dcweedrollnew", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"dcweedrollnew"}, all = false},
-                    {id = "devcore_needs", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"devcore_needs"}, all = false},
-                    {id = "devcore_smokev2", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"devcore_smokev2"}, all = false},
-                    {id = "dusa_pets", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"dusa-pets"}, all = false},
-                    {id = "dusa_pet_shop", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"dusa_pet"}, all = false},
-                    {id = "dv_donut_delivery", name = "Money Trigger (Medium Risk)", type = "money", res = {"dv-donutdeliveryjob"}, all = false},
-                    {id = "esx_weashop", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"esx_weashop"}, all = false},
-                    {id = "ez_lib", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"ez_lib"}, all = false},
-                    {id = "fivecode_camping", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"fivecode_camping"}, all = false},
-                    {id = "food_mechanics", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"food_mechanics"}, all = false},
-                    {id = "forge_starter", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"forge-starter"}, all = false},
-                    {id = "fs_placeables", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"fs_placeables"}, all = false},
-                    {id = "fuksus_shops", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"fuksus-shops"}, all = false},
-                    {id = "gardener_job", name = "Money Trigger (Medium Risk)", type = "money", res = {"gardenerjob"}, all = false},
-                    {id = "guatau_consumibles", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"guataubaconsumibles"}, all = false},
-                    {id = "hg_wheel", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"hg-wheel"}, all = false},
-                    {id = "horizon_payment", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"horizon_paymentsystem"}, all = false},
-                    {id = "complete_hunting", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"hunting"}, all = false},
-                    {id = "inside_fruitpicker", name = "Money Trigger (Medium Risk)", type = "money", res = {"inside-fruitpicker"}, all = false},
-                    {id = "inverse_consumables", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"inverse-consumables"}, all = false},
-                    {id = "it_lib", name = "Any Item Trigger (SAFE)", type = "item", res = {"it-lib"}, all = false},
-                    {id = "jg_mechanic", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"jg-mechanic"}, all = false},
-                    {id = "jim_bakery", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"jim-bakery"}, all = false},
-                    {id = "jim_beanmachine", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"jim-beanmachine"}, all = false},
-                    {id = "jim_burgershot", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"jim-burgershot"}, all = false},
-                    {id = "jim_catcafe", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"jim-catcafe"}, all = false},
-                    {id = "jim_consumables", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"jim-consumables"}, all = false},
-                    {id = "jim_mechanic", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"jim-mechanic"}, all = false},
-                    {id = "jim_mining", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"jim-mining"}, all = false},
-                    {id = "jim_pizzathis", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"jim-pizzathis"}, all = false},
-                    {id = "jim_recycle", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"jim-recycle"}, all = false},
-                    {id = "jim_shops_blackmarket", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"jim-shops"}, all = false},
-                    {id = "jim_shops_open", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"jim-shops"}, all = false},
-                    {id = "kaves_drugsv2", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"kaves_drugsv2"}, all = false},
-                    {id = "mt_restaurants", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"mt-restaurants"}, all = false},
-                    {id = "mt_printers", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"mt_printers"}, all = false},
-                    {id = "nx_cayo", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"nx-cayo"}, all = false},
-                    {id = "okok_crafting", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"okokCrafting"}, all = false},
-                    {id = "pug_business_creator", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"pug-businesscreator"}, all = false},
-                    {id = "pug_chopping", name = "Money Trigger (Medium Risk)", type = "money", res = {"pug-chopping"}, all = false},
-                    {id = "pug_fishing", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"pug-fishing"}, all = false},
-                    {id = "pug_robbery_creator", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"pug-robberycreator"}, all = false},
-                    {id = "qb_crafting", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"qb-crafting"}, all = false},
-                    {id = "qb_drugs", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"qb-drugs"}, all = false},
-                    {id = "qb_garbage_job", name = "Money Trigger (Medium Risk)", type = "money", res = {"qb-garbagejob"}, all = false},
-                    {id = "qb_hotdog_job", name = "Money Trigger (Medium Risk)", type = "money", res = {"qb-hotdogjob"}, all = false},
-                    {id = "qb_recycle_job", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"qb-recyclejob"}, all = false},
-                    {id = "qb_trash_search", name = "Money Trigger (Medium Risk)", type = "money", res = {"qb-trashsearch"}, all = false},
-                    {id = "qb_warehouse", name = "Money Trigger (Medium Risk)", type = "money", res = {"qb-warehouse"}, all = false},
-                    {id = "rm_camperv", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"rm_camperv"}, all = false},
-                    {id = "ry_rent", name = "Money Trigger (Medium Risk)", type = "money", res = {"ry_rent"}, all = false},
-                    {id = "savana_trucker", name = "Money Trigger (Medium Risk)", type = "money", res = {"savana-truckerjob"}, all = false},
-                    {id = "sayer_jukebox", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"sayer-jukebox"}, all = false},
-                    {id = "sell_usb", name = "Any Event Trigger (Medium Risk)", type = "event", res = {"sell_usb"}, all = false},
-                    {id = "snipe_boombox", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"snipe-boombox"}, all = false},
-                    {id = "solos_cashier", name = "Money Trigger (Medium Risk)", type = "money", res = {"solos-cashier"}, all = false},
-                    {id = "solos_food", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"solos-food"}, all = false},
-                    {id = "solos_hookah", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"solos-hookah"}, all = false},
-                    {id = "solos_jointroll", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"solos-jointroll"}, all = false},
-                    {id = "solos_joints", name = "Any Item Trigger (High Risk)", type = "item", res = {"solos-joints"}, all = false},
-                    {id = "solos_methlab", name = "Any Item Trigger (High Risk)", type = "item", res = {"solos-methlab"}, all = false},
-                    {id = "solos_moneywash", name = "Any Item Trigger (High Risk)", type = "item", res = {"solos-moneywash"}, all = false},
-                    {id = "solos_restaurants", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"solos-restaurants"}, all = false},
-                    {id = "t1ger_gangsystem", name = "Any Item Trigger (High Risk)", type = "item", res = {"t1ger_gangsystem"}, all = false},
-                    {id = "t1ger_lib", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"t1ger_lib"}, all = false},
-                    {id = "xmmx_letscookplus", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"xmmx_letscookplus"}, all = false},
-                    {id = "zat_farming", name = "Any Item Trigger (Medium Risk)", type = "item", res = {"zat-farming"}, all = false},
-                    {id = "zat_weed", name = "Any Item Trigger(High Risk)", type = "item", res = {"zat-weed"}, all = false}
-                }
-                for _, trigger in ipairs(knownTriggers) do
-                    local isAvailable = false
-                    if trigger.all then
-                        local allFound = true
-                        for _, resName in ipairs(trigger.res) do
-                            if not MachoResourceInjectable(resName) then
-                                allFound = false
-                                break
-                            end
-                        end
-                        if allFound then
-                            isAvailable = true
-                        end
-                    else
-                        if #trigger.res == 0 then
-                            isAvailable = true
-                        else
-                            for _, resName in ipairs(trigger.res) do
-                                if MachoResourceInjectable(resName) then
-                                    isAvailable = true
-                                    break
-                                end
-                            end
-                        end
-                    end
-                    if isAvailable then
-                        table.insert(triggerFinderTab.foundTriggers, trigger)
-                    end
-                end
-                MachoMenuNotification("JiGgY MeNu", "There Is " .. #triggerFinderTab.foundTriggers .. " triggers in this mf.", 5)
-                RebuildTriggerFinderUI(s)
-            end
-        })
-        for _, trigger in ipairs(triggerFinderTab.foundTriggers) do
-            table.insert(triggerFinderTab.items, {
-                type = "button",
-                label = trigger.name,
-                action = function(s)
-                    triggerFinderTab.selectedTrigger = trigger
-                    RebuildTriggerFinderUI(s)
-                end
-            })
-        end
-    else
-        local trigger = triggerFinderTab.selectedTrigger
-        table.insert(triggerFinderTab.items, {type = "label", label = "Selected: " .. trigger.name})
-        if trigger.type == "item" then
-            table.insert(triggerFinderTab.items, {type = "input", label = "Item Name", value = "", placeholder = "e.g., weapon_pistol"})
-        elseif trigger.type == "item_only" then
-            table.insert(triggerFinderTab.items, {type = "input", label = "Item Name", value = "", placeholder = "e.g., weapon_pistol"})
-        end
-        if trigger.type ~= "item_only" then
-            table.insert(triggerFinderTab.items, {type = "input", label = "Amount", value = "", placeholder = "e.g., 100000"})
-        end
-        table.insert(triggerFinderTab.items, {
-            type = "button",
-            label = "Execute",
-            action = function(s)
-                local itemInput, amountInput
-                if trigger.type == "item" then
-                    itemInput = s.tabs[tabIdx].items[2].value
-                    amountInput = tonumber(s.tabs[tabIdx].items[3].value)
-                elseif trigger.type == "item_only" then
-                    itemInput = s.tabs[tabIdx].items[2].value
-                    amountInput = nil
-                else
-                    itemInput = "money"
-                    amountInput = tonumber(s.tabs[tabIdx].items[2].value)
-                end
-
-                if (trigger.type == "item" and (not amountInput or amountInput <= 0 or not itemInput or itemInput == "")) or (trigger.type == "item_only" and (not itemInput or itemInput == "")) or (trigger.type ~= "item" and trigger.type ~= "item_only" and (not amountInput or amountInput <= 0)) then
-                    MachoMenuNotification("JiGgY MeNu", "Invalid input or amount.", 5)
-                    return
-                end
-
-                local handled = false
-                local handler = triggerHandlers[trigger.id]
-                if handler then
-                    handled = handler(itemInput, amountInput, trigger)
-                end
-
-                if handled then
-                    MachoMenuNotification("JiGgY MeNu", "Trigger Worked, Enjoy!", 5)
-                else
-                    MachoMenuNotification("JiGgY MeNu", "Saved ur ass. don't try ts again, prolly gonna get banned..", 5)
-                end
-            end
-        })
-        table.insert(triggerFinderTab.items, {
-            type = "button",
-            label = "Back",
-            action = function(s)
-                triggerFinderTab.selectedTrigger = nil
-                RebuildTriggerFinderUI(s)
-            end
-        })
-    end
-    state.selection.index = 0
-end
-
-local function scanForLogs()
-    logState.foundLogs = {}
-    for _, resName in ipairs(logResourceNames) do
-        if MachoResourceInjectable(resName) then
-            table.insert(logState.foundLogs, {name = resName, state = GetResourceState(resName)})
-        end
-    end
-end
-
-local function stopScannedLogs()
-    logState.stoppedLogs = {}
-    for _, log in ipairs(logState.foundLogs) do
-        if GetResourceState(log.name) == "started" then
-            pcall(function()
-                MachoResourceStop(log.name)
-            end)
-            table.insert(logState.stoppedLogs, log.name)
-        end
-    end
-    scanForLogs()
-end
-
-local function RebuildLogsUI(state)
-    local logsTab
-    for _, tab in ipairs(state.tabs) do
-        if tab.key == "check_logs" then
-            logsTab = tab
-            break
-        end
-    end
-    if not logsTab then
-        return
-    end
-
-    logsTab.items = {}
-
-    table.insert(logsTab.items, {
-        type = "button",
-        label = "Scan For Log Resources",
-        action = function(s)
-            scanForLogs()
-            RebuildLogsUI(s)
-        end
-    })
-
-    if #logState.foundLogs > 0 then
-        table.insert(logsTab.items, {
-            type = "button",
-            label = "Stop All Running Logs",
-            action = function(s)
-                stopScannedLogs()
-                RebuildLogsUI(s)
-            end
-        })
-        table.insert(logsTab.items, {type = "label", label = "--- Found Logs ---"})
-        for _, log in ipairs(logState.foundLogs) do
-            table.insert(logsTab.items, {type = "label", label = log.name .. " (" .. (GetResourceState(log.name) or "stopped") .. ")"})
-        end
-    end
-    state.selection.index = 0
-end
-
-local MenuState = {
-    position = MenuPosition,
-    activeTab = 0,
-    selection = {index = 0},
-    isTyping = false,
-    isContentPanelOpen = false,
-    tabs = {
-        {
-            key = "servers",
-            title = "Servers",
-            header = "Server Triggers (Money)",
-            type = "grid",
-            cols = 2,
-            items = {
-                {label = "Vinewood LA", action = function()
-                    inject([[pcall(function() TriggerServerEvent('delivery:giveRewardnails', 150000) end)]])
-                    MachoMenuNotification("JiGgY MeNu", "Trigger Executed, Enjoy.", 5)
-                end},
-                {label = "Atlanta Projects", action = function()
-                    inject([[pcall(function() TriggerServerEvent('devkit_bbq:addinv', 'money', 1000000) end)]])
-                    MachoMenuNotification("JiGgY MeNu", "Trigger Executed, Enjoy.", 5)
-                end},
-                {label = "LA PRESION LATINA 2.0", action = function()
-                    inject([[pcall(function() TriggerServerEvent('Tk_motores:returnItems', {['money'] = 1000000}) end)]])
-                    MachoMenuNotification("JiGgY MeNu", "Trigger Executed, Enjoy.", 5)
-                end},
-                {label = "La Diabla RP", action = function()
-                    inject([[pcall(function() TriggerServerEvent('Tk_motores:returnItems', {['money'] = 1000000}) end)]])
-                    MachoMenuNotification("JiGgY MeNu", "Trigger Executed, Enjoy.", 5)
-                end},
-                {label = "Flawda Water RP", action = function()
-                    inject([[pcall(function() TriggerServerEvent('delivery:giveRewardhandbags', 1000000) end)]])
-                    MachoMenuNotification("JiGgY MeNu", "Trigger Executed, Enjoy.", 5)
-                end},
-                {label = "Full Send RP", action = function()
-                    inject([[pcall(function() TriggerServerEvent('Core:triggerServerCallback', "core:addItem", 75, "dollar", 500000, nil) end)]])
-                    MachoMenuNotification("JiGgY MeNu", "Trigger Executed, Enjoy.", 5)
-                end},
-                {label = "Palm Beach Miami", action = function()
-                    inject([[Citizen.CreateThread(function() for i=1,135 do TriggerServerEvent("shop:purchaseItem2","codeplug"..math.random(1000,999999),"money",0) end end)]])
-                    MachoMenuNotification("JiGgY MeNu", "Trigger Executed, Enjoy.", 5)
-                end},
-                {label = "Redline District", action = function()
-                    inject([[pcall(function() TriggerServerEvent("Pug:server:GiveChoppingCarPay", 6969969) end)]])
-                    MachoMenuNotification("JiGgY MeNu", "Trigger Executed, Enjoy.", 5)
-                end},
-                {label = "Raq City", action = function()
-                    inject([[pcall(function() TriggerServerEvent('delivery:giveRewardhandbags', 1000000) end)]])
-                    MachoMenuNotification("JiGgY MeNu", "Trigger Executed, Enjoy.", 5)
-                end},
-                {label = "More Servers Coming Soon", action = function()
-                    MachoMenuNotification("JiGgY MeNu", "More Servers Coming Soon.", 5)
-                end}
+        // Function to show intro overlay
+        function showIntroOverlay() {
+            const introOverlay = document.getElementById('introOverlay');
+            const introGif = introOverlay.querySelector('.intro-gif');
+            
+            if (introOverlay && introGif) {
+                // Force GIF to reload by changing its src
+                const gifSrc = introGif.src;
+                introGif.src = '';
+                introGif.src = gifSrc;
+                
+                introOverlay.classList.remove('hidden');
+                introOverlay.classList.add('show');
+                
+                // Hide intro after 3 seconds
+                setTimeout(() => {
+                    introOverlay.classList.add('hidden');
+                    introOverlay.classList.remove('show');
+                }, 3000);
             }
-        },
-        {key = "players", title = "Players", header = "Players List", type = "list", items = {}},
-        {
-            key = "self",
-            title = "Self",
-            header = "Self Options",
-            type = "form",
-            items = {
-                {type = "button", label = "Set Police Job", action = function()
-                    MachoInjectResource("wasabi_multijob", [[
-SelectJobMenu({
-    job    = 'police',
-    grade  = 5,
-    label  = 'police',
-    boss   = true,
-    onDuty = false
-})
-]])
+        }
+
+        // Core rendering functions
+        function renderTabs() {
+            if (!menuState || !menuState.tabs) return;
+
+            const tabList = document.getElementById('tab-list');
+            tabList.innerHTML = '';
+
+            menuState.tabs.forEach((tab, index) => {
+                const tabElement = document.createElement('div');
+                tabElement.className = 'tab-item';
+                if (index === menuState.activeTab) {
+                    tabElement.classList.add('active');
+                }
+                tabElement.textContent = tab.title || `Tab ${index + 1}`;
+                tabList.appendChild(tabElement);
+            });
+        }
+
+        function renderContent() {
+            if (!menuState || !menuState.tabs) return;
+
+            const currentTab = menuState.tabs[menuState.activeTab];
+            if (!currentTab) return;
+
+            const contentTitle = document.getElementById('content-title');
+            const contentBody = document.getElementById('content-body');
+            const controlsHint = document.getElementById('controlsHint');
+
+            contentTitle.textContent = currentTab.header || currentTab.title || 'Content';
+
+            // Update controls hint based on state
+            if (menuState.isTyping) {
+                controlsHint.innerHTML = '<span>Typing Mode</span> • <span>Enter</span> Finish • <span>Esc</span> Cancel • <span>Ctrl+V</span> Paste • <span>Ctrl+C</span> Copy';
+                controlsHint.classList.add('typing-mode');
+            } else if (menuState.isContentPanelOpen) {
+                controlsHint.innerHTML = '<span>↑↓</span> Navigate • <span>Enter</span> Select • <span>Backspace</span> Back • <span>Delete</span> Close';
+                controlsHint.classList.remove('typing-mode');
+            } else {
+                controlsHint.innerHTML = '<span>↑↓</span> Switch Tab • <span>Enter</span> Open • <span>Delete</span> Close Menu';
+                controlsHint.classList.remove('typing-mode');
+            }
+
+            // Show empty state if content panel is not open
+            if (!menuState.isContentPanelOpen) {
+                contentBody.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><img src="https://cdn.imgchest.com/files/d7d0d21e8b3d.gif" alt="Flower"></div>
+                        <div class="empty-state-text">Press Enter to open this tab</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Show empty state if no items
+            if (!currentTab.items || currentTab.items.length === 0) {
+                contentBody.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><img src="https://cdn.imgchest.com/files/d7d0d21e8b3d.gif" alt="Flower"></div>
+                        <div class="empty-state-text">No items available</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Render based on tab type
+            if (currentTab.type === 'grid') {
+                renderGridContent(currentTab, contentBody);
+            } else if (currentTab.type === 'list') {
+                renderListContent(currentTab, contentBody);
+            } else if (currentTab.type === 'form') {
+                renderFormContent(currentTab, contentBody);
+            }
+        }
+
+        function renderGridContent(tab, container) {
+            const gridContainer = document.createElement('div');
+            gridContainer.className = 'grid-container';
+
+            // Adjust grid columns based on cols property
+            if (tab.cols) {
+                gridContainer.style.gridTemplateColumns = `repeat(${tab.cols}, 1fr)`;
+            }
+
+            tab.items.forEach((item, index) => {
+                const gridItem = document.createElement('div');
+                gridItem.className = 'grid-item';
+                gridItem.setAttribute('data-index', index);
+                
+                if (index === menuState.selection.index) {
+                    gridItem.classList.add('selected');
+                }
+                gridItem.textContent = item.label || `Item ${index + 1}`;
+                gridContainer.appendChild(gridItem);
+            });
+
+            container.innerHTML = '';
+            container.appendChild(gridContainer);
+        }
+
+        function renderListContent(tab, container) {
+            const listContainer = document.createElement('div');
+            listContainer.className = 'list-container';
+
+            tab.items.forEach((item, index) => {
+                const listItem = document.createElement('div');
+                listItem.className = 'list-item';
+                listItem.setAttribute('data-index', index);
+                
+                if (index === menuState.selection.index) {
+                    listItem.classList.add('selected');
+                }
+
+                // Add submenu indicator for players
+                if (item.hasOptions || item.showOptions) {
+                    listItem.classList.add('has-submenu');
+                }
+
+                const label = document.createElement('span');
+                label.textContent = item.label || `Item ${index + 1}`;
+                listItem.appendChild(label);
+
+                if (item.state) {
+                    const status = document.createElement('span');
+                    status.className = `resource-status ${item.state}`;
+                    status.textContent = item.state;
+                    listItem.appendChild(status);
+                }
+
+                listContainer.appendChild(listItem);
+
+                // Render player options submenu if showOptions is true
+                if (item.showOptions && index === menuState.selection.index) {
+                    const submenuDiv = document.createElement('div');
+                    submenuDiv.className = 'player-submenu';
+
+                    const submenuTitle = document.createElement('div');
+                    submenuTitle.className = 'player-submenu-title';
+                    submenuTitle.textContent = '▼ Player Options ▼';
+                    submenuDiv.appendChild(submenuTitle);
+
+                    const playerOptions = [
+                        'Teleport to Player',
+                        'Bring Player to You',
+                        'Give Weapon',
+                        'Heal Player',
+                        'Kill Player',
+                        'Freeze Player',
+                        'Spectate Player',
+                        'Explode Player',
+                        'Kick Player',
+                        'Ban Player'
+                    ];
+
+                    playerOptions.forEach((optionLabel, optionIndex) => {
+                        const optionDiv = document.createElement('div');
+                        optionDiv.className = 'player-option';
+                        optionDiv.setAttribute('data-option-index', optionIndex);
+                        
+                        if (item.selectedOption === optionIndex) {
+                            optionDiv.classList.add('selected');
+                        }
+                        optionDiv.textContent = optionLabel;
+                        submenuDiv.appendChild(optionDiv);
+                    });
+
+                    listContainer.appendChild(submenuDiv);
+                }
+            });
+
+            container.innerHTML = '';
+            container.appendChild(listContainer);
+        }
+
+        function renderFormContent(tab, container) {
+            const formContainer = document.createElement('div');
+            formContainer.className = 'form-container';
+
+            tab.items.forEach((item, index) => {
+                const formItem = document.createElement('div');
+                formItem.className = 'form-item';
+
+                if (item.type === 'input') {
+                    const label = document.createElement('div');
+                    label.className = 'form-label';
+                    label.textContent = item.label || 'Input';
+
+                    const input = document.createElement('input');
+                    input.className = 'form-input';
+                    input.type = 'text';
+                    input.value = item.value || '';
+                    input.placeholder = item.placeholder || '';
+                    input.readOnly = true;
+
+                    // Visual feedback for typing mode
+                    if (menuState.isTyping && index === menuState.selection.index) {
+                        input.classList.add('typing');
+                    }
+
+                    // Visual feedback for selection
+                    if (index === menuState.selection.index && !menuState.isTyping) {
+                        input.style.borderColor = '#ffb6c1';
+                        input.style.boxShadow = '0 0 0 3px rgba(255, 182, 193, 0.35)';
+                    }
+
+                    formItem.appendChild(label);
+                    formItem.appendChild(input);
+                } else if (item.type === 'button') {
+                    const button = document.createElement('button');
+                    button.className = 'form-button';
+                    if (index === menuState.selection.index) {
+                        button.classList.add('selected');
+                    }
+                    
+                    // Add status badge if item has state
+                    let buttonText = item.label || 'Button';
+                    if (item.state) {
+                        buttonText += ` <span class="status-badge ${item.state}">${item.state.toUpperCase()}</span>`;
+                    }
+                    button.innerHTML = buttonText;
+                    
+                    formItem.appendChild(button);
+                } else if (item.type === 'label') {
+                    const labelDiv = document.createElement('div');
+                    labelDiv.style.cssText = 'padding: 12px; background: rgba(255, 182, 193, 0.08); border-radius: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.7); text-align: center; border: 1px solid rgba(255, 182, 193, 0.2);';
+                    labelDiv.textContent = item.label || 'Label';
+                    formItem.appendChild(labelDiv);
+                } else if (item.label) {
+                    // Resource or regular list item in form (like the resources tab)
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-item';
+                    if (index === menuState.selection.index) {
+                        listItem.classList.add('selected');
+                    }
+
+                    const label = document.createElement('span');
+                    label.textContent = item.label;
+                    listItem.appendChild(label);
+
+                    if (item.state) {
+                        const status = document.createElement('span');
+                        status.className = `resource-status ${item.state}`;
+                        status.textContent = item.state;
+                        listItem.appendChild(status);
+                    }
+
+                    formItem.appendChild(listItem);
+                }
+
+                formContainer.appendChild(formItem);
+            });
+
+            container.innerHTML = '';
+            container.appendChild(formContainer);
+        }
+
+        function update() {
+            if (!menuState) return;
+            
+            renderTabs();
+            renderContent();
+
+            // Handle visibility
+            const menuWrapper = document.getElementById('menuWrapper');
+            if (isVisible) {
+                menuWrapper.classList.add('visible');
+            } else {
+                menuWrapper.classList.remove('visible');
+            }
+
+            // Enhanced auto-scroll for selected items
+            setTimeout(() => {
+                const contentBody = document.getElementById('content-body');
+                if (!contentBody) return;
+
+                // First try to find selected player option
+                let selectedElement = contentBody.querySelector('.player-option.selected');
+                
+                // If not in player options, find selected list item or other selected element
+                if (!selectedElement) {
+                    selectedElement = contentBody.querySelector('.list-item.selected, .grid-item.selected, .form-button.selected, .form-input[style*="border-color: #ffb6c1"]');
+                }
+
+                if (selectedElement) {
+                    // Get the position of the element relative to the scrollable container
+                    const elementRect = selectedElement.getBoundingClientRect();
+                    const containerRect = contentBody.getBoundingClientRect();
+                    
+                    // Calculate if element is out of view
+                    const isAboveView = elementRect.top < containerRect.top;
+                    const isBelowView = elementRect.bottom > containerRect.bottom;
+                    
+                    if (isAboveView || isBelowView) {
+                        // Scroll the element into view
+                        selectedElement.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'nearest',
+                            inline: 'nearest'
+                        });
+                    }
+                }
+            }, 50);
+        }
+
+        // Message handler for receiving updates from Lua
+        window.addEventListener('message', (event) => {
+            const data = event.data;
+
+            if (data.action === 'update' && data.data) {
+                menuState = data.data;
+                isVisible = true;
+                update();
+            } else if (data.action === 'show') {
+                isVisible = true;
+                showIntroOverlay(); // Show the intro overlay when menu is opened
+                update();
+            } else if (data.action === 'hide') {
+                isVisible = false;
+                update();
+            }
+        });
+
+        // Initial render
+        update();
+    </script>
+</body>
+</html>
