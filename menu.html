@@ -1,1005 +1,2774 @@
-<!DOCTYPE html>
+-- ╔══════════════════════════════════════════════════════════════╗
+-- ║              blossom Menu — DUI Edition                      ║
+-- ║         Custom HTML UI synced with MachoMenu DUI             ║
+-- ╚══════════════════════════════════════════════════════════════╝
+
+local menuHTML = [[<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>blossom menu</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<title>blossom Menu</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --bg:           #0d0d0d;
-    --panel:        #111111;
-    --panel2:       #161616;
-    --border:       #1e1e1e;
-    --border2:      #2a2a2a;
-    --accent:       #ff3dff;
-    --accent-glow:  rgba(255,61,255,0.30);
-    --accent-soft:  rgba(255,61,255,0.10);
-    --accent-dim:   rgba(255,61,255,0.40);
-    --text:         #e8e8e8;
-    --text-dim:     #888888;
-    --text-muted:   #444444;
-    --on:           #22c55e;
-    --on-bg:        rgba(34,197,94,0.10);
-    --off:          #555555;
-    --hover:        #191919;
-    --sel-bg:       #1a0a1a;
-    --sel-border:   #ff3dff;
+    --accent: rgb(255, 61, 255);
+    --accent-dim: rgba(255, 61, 255, 0.15);
+    --accent-glow: rgba(255, 61, 255, 0.35);
+    --bg: #080810;
+    --panel: #0d0d18;
+    --panel2: #12121e;
+    --border: #1e1e32;
+    --text: #e8e8ff;
+    --muted: #6060a0;
+    --on: #2fff7b;
+    --off: #ff3333;
+    --hover: #161628;
   }
 
   html, body {
     width: 100%; height: 100%;
-    background: #080808;
-    font-family: 'Inter', sans-serif;
+    background: transparent;
+    font-family: 'Outfit', sans-serif;
     color: var(--text);
     overflow: hidden;
     user-select: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background: radial-gradient(ellipse 55% 55% at 50% 50%, rgba(180,0,180,0.04) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  /* ── WINDOW ────────────────────────────────── */
-  #app {
-    display: flex;
-    width: 760px;
-    height: 520px;
-    border: 1px solid var(--border2);
-    box-shadow: 0 0 40px rgba(255,61,255,0.08), 0 0 80px rgba(255,61,255,0.03);
-    animation: fadeIn 0.2s ease both;
-    position: relative;
-    z-index: 1;
+  #root {
+    display: none;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 650px; height: 500px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+    border-radius: 6px;
+    box-shadow: 0 0 60px var(--accent-glow), 0 0 120px rgba(255,61,255,0.05), inset 0 0 40px rgba(0,0,0,0.9);
+    flex-direction: row;
     overflow: hidden;
   }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } }
+  #root.visible { display: flex; }
 
-  /* ── LEFT: TAB BAR ────────────────────────── */
-  #tab-bar {
+  /* ── Sidebar ── */
+  #sidebar {
     width: 150px;
-    flex-shrink: 0;
+    min-width: 150px;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    background: var(--panel);
-    border-right: 1px solid var(--border2);
     overflow: hidden;
   }
 
-  .tab-brand {
-    padding: 12px 14px 10px;
+  #sidebar-header {
+    padding: 14px 12px 10px;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
   }
-  .tab-brand-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+  #sidebar-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: 2px;
-    text-transform: lowercase;
     color: var(--accent);
-    text-shadow: 0 0 14px var(--accent-glow);
+    text-transform: uppercase;
+    line-height: 1.2;
   }
-  .tab-brand-sub {
+  #sidebar-sub {
     font-size: 9px;
-    color: var(--text-muted);
-    letter-spacing: 1px;
+    color: var(--muted);
     margin-top: 2px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Space Mono', monospace;
   }
 
-  .tab-list { flex: 1; overflow-y: auto; padding: 4px 0; scrollbar-width: none; }
-  .tab-list::-webkit-scrollbar { display: none; }
+  #tab-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 0;
+  }
+  #tab-list::-webkit-scrollbar { width: 3px; }
+  #tab-list::-webkit-scrollbar-track { background: transparent; }
+  #tab-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
   .tab-item {
-    padding: 9px 14px;
-    font-size: 11.5px;
+    padding: 9px 12px;
+    font-size: 11px;
     font-weight: 500;
-    color: var(--text-dim);
+    color: var(--muted);
     cursor: pointer;
-    transition: all 0.1s;
-    position: relative;
-    letter-spacing: 0.2px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .tab-item:hover { background: var(--hover); color: var(--text); }
   .tab-item.active {
-    background: var(--sel-bg);
-    color: var(--text);
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: var(--accent-dim);
+    font-weight: 600;
   }
-  .tab-item.active::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 2px;
-    background: var(--accent);
-    box-shadow: 0 0 8px var(--accent-glow);
-  }
-  .tab-arrow {
-    margin-left: auto;
-    font-size: 10px;
-    color: var(--text-muted);
-  }
-  .tab-item.active .tab-arrow { color: var(--accent); }
 
-  .tab-footer {
-    padding: 8px 14px;
+  #sidebar-footer {
+    padding: 8px 12px;
     border-top: 1px solid var(--border);
+    font-size: 9px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
     flex-shrink: 0;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 8px;
-    color: var(--text-muted);
-    letter-spacing: 1px;
   }
 
-  /* ── RIGHT: CONTENT ───────────────────────── */
-  #content-area {
+  /* ── Content area ── */
+  #content {
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: var(--bg);
     overflow: hidden;
   }
 
-  /* Content header */
-  .content-header {
-    height: 33px;
-    background: var(--panel);
-    border-bottom: 1px solid var(--border2);
+  #tab-header {
+    height: 32px;
+    background: var(--panel2);
+    border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     padding: 0 14px;
-    gap: 8px;
     flex-shrink: 0;
+    gap: 8px;
   }
-  .content-title {
-    font-size: 9px;
+  #tab-header-label {
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
     color: var(--accent);
-    display: flex;
-    align-items: center;
-    gap: 7px;
+    font-family: 'Space Mono', monospace;
   }
-  .content-title::before {
-    content: '';
-    width: 2px; height: 11px;
-    background: var(--accent);
-    border-radius: 1px;
-    box-shadow: 0 0 6px var(--accent-glow);
-  }
-  .typing-badge {
+  #tab-header-version {
+    font-size: 9px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
     margin-left: auto;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 8px;
-    letter-spacing: 1.5px;
-    color: var(--accent);
-    display: none;
-    animation: blink 1s infinite;
   }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
-  /* Two-column body */
-  .content-body {
+  #tab-body {
     flex: 1;
-    display: flex;
-    gap: 0;
     overflow: hidden;
+    display: flex;
+    padding: 10px;
+    gap: 10px;
   }
 
-  /* Section panel */
-  .section {
+  /* ── Columns ── */
+  .col {
     flex: 1;
     display: flex;
     flex-direction: column;
-    border-right: 1px solid var(--border);
+    gap: 10px;
     overflow: hidden;
+    min-width: 0;
   }
-  .section:last-child { border-right: none; }
+  .col-tall { flex: 1; }
 
-  .section-header {
-    padding: 7px 10px 6px;
-    font-size: 8px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    border-bottom: 1px solid var(--border);
+  /* ── Panel/Group ── */
+  .group {
     background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+  }
+  .group-label {
+    padding: 5px 10px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    background: var(--panel2);
     flex-shrink: 0;
+    font-family: 'Space Mono', monospace;
+  }
+  .group-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 0;
+  }
+  .group-scroll::-webkit-scrollbar { width: 3px; }
+  .group-scroll::-webkit-scrollbar-track { background: transparent; }
+  .group-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── Items ── */
+  .item {
+    padding: 6px 10px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.1s;
+    gap: 6px;
+    min-height: 28px;
+  }
+  .item:hover { background: var(--hover); }
+  .item.selected { background: var(--accent-dim); }
+  .item-label { flex: 1; font-weight: 400; line-height: 1.3; }
+  .item-label.detect { font-size: 10px; color: #ffaa33; }
+
+  .badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+  .badge-on { background: rgba(47,255,123,0.15); color: var(--on); border: 1px solid rgba(47,255,123,0.3); }
+  .badge-off { background: rgba(255,51,51,0.12); color: var(--off); border: 1px solid rgba(255,51,51,0.25); }
+  .badge-btn {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(255,61,255,0.3);
+  }
+
+  /* Input rows */
+  .item-input {
+    padding: 5px 8px;
     display: flex;
     align-items: center;
     gap: 6px;
   }
-  .section-header::after {
-    content: '';
-    flex: 1; height: 1px;
-    background: var(--border);
+  .item-input label {
+    font-size: 10px;
+    color: var(--muted);
+    white-space: nowrap;
+    flex-shrink: 0;
   }
-
-  .section-scroll {
+  .item-input input {
     flex: 1;
-    overflow-y: auto;
-    padding: 5px;
-    scrollbar-width: thin;
-    scrollbar-color: #2a2a2a transparent;
-  }
-  .section-scroll::-webkit-scrollbar { width: 3px; }
-  .section-scroll::-webkit-scrollbar-thumb { background: #2a2a2a; }
-
-  /* ── ITEMS ──────────────────────────────────── */
-  .item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 7px 9px;
-    margin-bottom: 1px;
+    background: var(--panel2);
+    border: 1px solid var(--border);
     border-radius: 3px;
-    font-size: 11.5px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.1s;
-    border: 1px solid transparent;
-    min-height: 31px;
-    color: var(--text-dim);
-  }
-  .item:hover { background: var(--hover); color: var(--text); border-color: var(--border); }
-  .item.selected {
-    background: var(--sel-bg);
-    border-color: var(--sel-border);
-    color: #fff;
-    box-shadow: inset 0 0 12px rgba(255,61,255,0.04);
-  }
-  .item-label { flex: 1; line-height: 1.2; }
-
-  /* Toggle / checkbox */
-  .item-toggle {
-    width: 30px; height: 16px;
-    background: #1e1e1e;
-    border: 1px solid #333;
-    border-radius: 8px;
-    position: relative;
-    flex-shrink: 0;
-    transition: all 0.2s;
-  }
-  .item-toggle::after {
-    content: '';
-    position: absolute;
-    left: 2px; top: 2px;
-    width: 10px; height: 10px;
-    background: #555;
-    border-radius: 50%;
-    transition: all 0.2s;
-  }
-  .item-toggle.on {
-    background: rgba(255,61,255,0.15);
-    border-color: var(--accent);
-  }
-  .item-toggle.on::after {
-    left: 16px;
-    background: var(--accent);
-    box-shadow: 0 0 6px var(--accent-glow);
-  }
-
-  /* Badge */
-  .badge {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 8px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    padding: 2px 6px;
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
-  .badge.on  { background: var(--on-bg);  color: var(--on); border: 1px solid rgba(34,197,94,0.3); }
-  .badge.det { background: rgba(255,200,0,0.1); color: #ffc800; border: 1px solid rgba(255,200,0,0.25); font-size: 7px; }
-
-  /* Input item */
-  .item.input-item {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 3px;
-    cursor: default;
-    padding: 7px 9px;
-  }
-  .input-lbl {
-    font-size: 8px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-  .input-f {
-    background: none;
-    border: none;
-    border-bottom: 1px solid var(--border2);
-    outline: none;
-    font-family: 'Inter', sans-serif;
-    font-size: 11.5px;
     color: var(--text);
-    padding-bottom: 2px;
-    width: 100%;
-    cursor: text;
+    font-size: 10px;
+    padding: 3px 6px;
+    font-family: 'Space Mono', monospace;
+    outline: none;
+    transition: border-color 0.15s;
+    min-width: 0;
   }
-  .input-f::placeholder { color: var(--text-muted); }
-  .item.selected .input-f { border-color: var(--accent); }
+  .item-input input:focus { border-color: var(--accent); }
+  .item-input input.typing { border-color: var(--accent); background: rgba(255,61,255,0.05); }
+  .item-input input::placeholder { color: var(--muted); }
 
-  /* Dropdown */
-  .item.dropdown-item {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 3px;
-    cursor: pointer;
-    padding: 7px 9px;
-    min-height: auto;
-  }
-  .dropdown-lbl {
-    font-size: 8px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-  .dropdown-val {
+  /* Select rows */
+  .item-select {
+    padding: 5px 8px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    font-size: 11.5px;
-    color: var(--text-dim);
+    gap: 6px;
   }
-  .item.selected .dropdown-val { color: var(--text); }
-  .dropdown-arrow { font-size: 10px; color: var(--text-muted); }
-
-  /* ── STATUS BAR ─────────────────────────────── */
-  .statusbar {
-    height: 24px;
-    background: var(--panel);
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 12px;
-    gap: 14px;
+  .item-select label {
+    font-size: 10px;
+    color: var(--muted);
+    white-space: nowrap;
     flex-shrink: 0;
   }
-  .sb-item {
-    display: flex; align-items: center; gap: 5px;
-    font-size: 8.5px; letter-spacing: 0.8px;
-    color: var(--text-muted); text-transform: uppercase;
+  .item-select select {
+    flex: 1;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-size: 10px;
+    padding: 3px 6px;
+    font-family: 'Outfit', sans-serif;
+    outline: none;
+    cursor: pointer;
+    min-width: 0;
   }
-  .sb-key {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 7.5px;
-    background: #1a1a1a;
-    border: 1px solid var(--border2);
-    border-radius: 2px;
-    padding: 1px 4px;
-    color: var(--text-dim);
+  .item-select select:focus { border-color: var(--accent); }
+
+  /* Slider rows */
+  .item-slider {
+    padding: 5px 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
-  .sb-spacer { flex: 1; }
-  .sb-ver {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 8px;
-    color: var(--text-muted);
-    letter-spacing: 1px;
+  .item-slider label {
+    font-size: 10px;
+    color: var(--muted);
+    width: 20px;
+    flex-shrink: 0;
+    font-family: 'Space Mono', monospace;
+  }
+  .item-slider input[type=range] {
+    flex: 1;
+    accent-color: var(--accent);
+    cursor: pointer;
+    height: 3px;
+    min-width: 0;
+  }
+  .item-slider .slider-val {
+    font-size: 9px;
+    color: var(--accent);
+    width: 28px;
+    text-align: right;
+    font-family: 'Space Mono', monospace;
+    flex-shrink: 0;
   }
 
-  /* ── NOTIFICATION ───────────────────────────── */
-  .notif {
+  /* Divider */
+  .item-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 2px 8px;
+    flex-shrink: 0;
+  }
+
+  /* Notification */
+  #notification {
     position: fixed;
-    bottom: 22px; right: 22px;
+    bottom: 16px;
+    right: 16px;
     background: var(--panel);
-    border: 1px solid var(--border2);
-    border-left: 2px solid var(--accent);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
     border-radius: 4px;
     padding: 8px 12px;
-    min-width: 190px; max-width: 280px;
-    z-index: 999;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 20px rgba(255,61,255,0.06);
-    animation: notifIn 0.2s ease both;
+    max-width: 280px;
+    font-size: 11px;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: all 0.25s;
     pointer-events: none;
+    z-index: 999;
   }
-  .notif.fade-out { animation: notifOut 0.3s ease both; }
-  @keyframes notifIn  { from { opacity:0; transform:translateX(10px); } }
-  @keyframes notifOut { to   { opacity:0; transform:translateX(10px); } }
-  .notif-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 8px; font-weight: 700;
-    letter-spacing: 1.5px; text-transform: uppercase;
-    color: var(--accent); margin-bottom: 3px;
-  }
-  .notif-body { font-size: 11px; color: var(--text); }
+  #notification.show { opacity: 1; transform: translateX(0); }
+  #notification-title { font-weight: 700; color: var(--accent); font-size: 10px; letter-spacing: 0.5px; margin-bottom: 2px; }
+  #notification-msg { color: var(--text); line-height: 1.4; }
 
-  /* single full-width section */
-  .content-body.single .section { flex: unset; width: 100%; }
+  /* Typing indicator */
+  #typing-indicator {
+    display: none;
+    position: fixed;
+    top: 8px; right: 8px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 9px;
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 1px;
+    z-index: 999;
+  }
 </style>
 </head>
 <body>
-
-<div id="app">
-  <!-- TAB BAR -->
-  <div id="tab-bar">
-    <div class="tab-brand">
-      <div class="tab-brand-title">blossom</div>
-      <div class="tab-brand-sub">0.V1 · caps lock</div>
+<div id="root">
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <div id="sidebar-title">blossom</div>
+      <div id="sidebar-sub">.gg/blossoma</div>
     </div>
-    <div class="tab-list" id="tab-list"></div>
-    <div class="tab-footer">.gg/blossoma</div>
+    <div id="tab-list"></div>
+    <div id="sidebar-footer">CAPS LOCK toggle</div>
   </div>
-
-  <!-- CONTENT -->
-  <div id="content-area">
-    <div class="content-header">
-      <div class="content-title" id="content-title">Self</div>
-      <div class="typing-badge" id="typing-badge">● TYPING</div>
+  <div id="content">
+    <div id="tab-header">
+      <div id="tab-header-label">SELECT TAB</div>
+      <div id="tab-header-version">0.V1</div>
     </div>
-    <div class="content-body" id="content-body"></div>
-    <div class="statusbar">
-      <div class="sb-item"><span class="sb-key">↑↓</span> navigate</div>
-      <div class="sb-item"><span class="sb-key">TAB</span> tabs</div>
-      <div class="sb-item"><span class="sb-key">ENTER</span> select</div>
-      <div class="sb-item"><span class="sb-key">ESC</span> back</div>
-      <div class="sb-spacer"></div>
-      <div class="sb-ver">blossom · caps lock</div>
-    </div>
+    <div id="tab-body"></div>
   </div>
 </div>
+<div id="notification">
+  <div id="notification-title"></div>
+  <div id="notification-msg"></div>
+</div>
+<div id="typing-indicator">TYPING MODE</div>
 
 <script>
-// ─── helpers ──────────────────────────────────────────────────────────────────
-function btn(label, detectable) {
-  return { type:'button', label, det: !!detectable };
-}
-function chk(label, detectable) {
-  return { type:'checkbox', label, on:false, det: !!detectable };
-}
-function inp(label, placeholder) {
-  return { type:'input', label, value:'', placeholder: placeholder||'...' };
-}
-function drop(label, options) {
-  return { type:'dropdown', label, options, selected:0 };
+'use strict';
+
+let state = null;
+let notifTimer = null;
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html !== undefined) e.innerHTML = html;
+  return e;
 }
 
-// ─── Tab definitions ──────────────────────────────────────────────────────────
-const TABS = [
-  {
-    key:'self', title:'Self',
-    sections:[
-      { name:'Toggles', items:[
-        chk('Godmode', true),
-        chk('Invisibility'),
-        chk('No Ragdoll'),
-        chk('Infinite Stamina'),
-        chk('Tiny Ped', true),
-        chk('No Clip', true),
-        chk('Free Camera'),
-        chk('Super Punch'),
-        chk('Throw From Vehicle'),
-        chk('Force Third Person'),
-        chk('Force Driveby'),
-        chk('Anti-Headshot'),
-        chk('Anti-Freeze'),
-        chk('Anti-Blackscreen'),
-        chk('Super Strength'),
-        chk('Levitation'),
-        chk('Super Jump'),
-        chk('Laser Eyes (Left Alt)'),
-      ]},
-      { name:'Model', items:[
-        inp('Model Name:', 'e.g. mp_m_freemode_01'),
-        btn('Change Model'),
-        btn('.gg/blossoma Drip'),
-      ]},
-      { name:'Functions', items:[
-        btn('Heal Self'),
-        btn('Revive Self'),
-        btn('Clear Tasks'),
-        btn('Remove Wanted Level'),
-      ]},
-    ]
-  },
-  {
-    key:'players', title:'Players',
-    sections:[
-      { name:'Actions', items:[
-        inp('Player ID:', 'Server ID'),
-        drop('Ped Models', ['Michael','Franklin','Trevor','Lamar','Jimmy','Police Male','SWAT','Sheriff','FIB','Paramedic','Firefighter','Business Male','Gang 1','Ballas 1','Lost MC 1','Army 1','Hobo Male']),
-        drop('Attach Car', ['pounder2','pounder','mule','phantom','hauler','mixer','bus','coach','firetruk','rhino','insurgent','luxor2']),
-        btn('Explode Player Vehicle'),
-        btn('Steal Player Vehicle'),
-        btn('Kick Player From Vehicle'),
-      ]},
-      { name:'Trolling', items:[
-        btn('Kill Player'),
-        btn('Taze Player'),
-        btn('Cage Player'),
-        btn('Explode Player', true),
-        btn('Give All Nearby Objects'),
-        btn('Teleport To Player'),
-        btn('Kick From Vehicle'),
-        btn('Freeze Player'),
-        btn('Glitch Player'),
-        btn('Limbo Player'),
-        chk('Spectate Player'),
-      ]},
-    ]
-  },
-  {
-    key:'server', title:'Server',
-    sections:[
-      { name:'Player', items:[
-        inp('Player ID:', 'Server ID'),
-        btn('Kill Player'),
-        btn('Taze Player'),
-        btn('Cage Player'),
-        btn('Explode Player', true),
-        btn('Give All Nearby Objects'),
-        btn('Teleport To Player'),
-        btn('Kick From Vehicle'),
-        btn('Freeze Player'),
-        btn('Glitch Player'),
-        btn('Limbo Player'),
-        chk('Spectate Player'),
-        btn('Steal Player Inventory'),
-      ]},
-      { name:'Everyone', items:[
-        btn('Kill Everyone'),
-        btn('Explode Everyone', true),
-        btn('Launch All Players'),
-        drop('Attach Car To Everyone', ['pounder2','mule','phantom','hauler','mixer','bus','rhino','insurgent']),
-        drop('Attach Entity To Everyone', ['prop_cs1_14b_traind','prop_barrier_work05','prop_dumpster_01a','prop_roadcone02a','prop_bench_01a','prop_bin_01a','prop_roadcone01a']),
-      ]},
-    ]
-  },
-  {
-    key:'weapons', title:'Weapons',
-    sections:[
-      { name:'Mods', items:[
-        chk('Infinite Ammo'),
-        chk('Explosive Ammo', true),
-        chk('One Shot Kill'),
-        chk('Spoofed Weapon Spawning'),
-        btn('Remove All Weapons'),
-        btn('Refill Ammo'),
-        btn('Give Max Ammo'),
-        btn('Spoof All Weapons'),
-        drop('Aiming Style', ['Default','Gangster','Wild','Red Neck']),
-        btn('Apply Aiming Style'),
-      ]},
-      { name:'Spawner', items:[
-        inp('Weapon:', 'e.g. weapon_pistol'),
-        btn('Spawn Weapon'),
-        drop('Pistols',    ['Pistol','Combat Pistol','AP Pistol','Pistol .50','Heavy Pistol','Revolver']),
-        drop('SMGs',       ['Micro SMG','SMG','SMG MK2','Assault SMG','Combat PDW','Machine Pistol','Mini SMG']),
-        drop('Shotguns',   ['Pump Shotgun','Pump MK2','Sawed-Off','Assault Shotgun','Bullpup Shotgun','Heavy Shotgun','Sweeper']),
-        drop('Rifles',     ['Assault Rifle','Assault MK2','Carbine Rifle','Carbine MK2','Advanced Rifle','Special Carbine','Bullpup Rifle','Military Rifle']),
-        drop('Snipers',    ['Sniper Rifle','Heavy Sniper','Heavy Sniper MK2','Marksman Rifle','Marksman MK2']),
-        drop('Heavy',      ['RPG','Grenade Launcher','Minigun','Firework Launcher','Railgun','Homing Launcher','Compact Grenade Launcher','Widowmaker']),
-        drop('Melee',      ['Knife','Nightstick','Hammer','Bat','Crowbar','Golf Club','Bottle','Dagger','Hatchet','Machete','Switchblade','Battle Axe','Pool Cue','Wrench']),
-        drop('Throwables', ['Grenade','Sticky Bomb','Proximity Mine','Tear Gas','Molotov','Jerry Can','Snowball','Pipe Bomb','BZ Gas']),
-      ]},
-    ]
-  },
-  {
-    key:'vehicle', title:'Vehicle',
-    sections:[
-      { name:'Mods', items:[
-        chk('Vehicle Godmode'),
-        chk('Force Vehicle Engine'),
-        chk('Vehicle Auto Repair'),
-        chk('Freeze Vehicle'),
-        chk('Vehicle Hop'),
-        chk('Rainbow Vehicle'),
-        chk('Drift Mode'),
-        chk('Easy Handling'),
-        chk('Instant Brakes'),
-        chk('Unlimited Fuel'),
-      ]},
-      { name:'Actions', items:[
-        chk('Vehicle Invincible'),
-        btn('Repair Vehicle'),
-        btn('Clean Vehicle'),
-        btn('Max Upgrade Vehicle'),
-        btn('Delete Vehicle'),
-        btn('Flip Vehicle Upright'),
-        btn('Spawn Vehicle (Custom)'),
-        btn('Eject From Vehicle'),
-        btn('Enter Closest Vehicle'),
-      ]},
-    ]
-  },
-  {
-    key:'teleport', title:'Teleport',
-    sections:[
-      { name:'Locations', items:[
-        btn('Mission Row PD'),
-        btn('Del Perro Pier'),
-        btn('Grove Street'),
-        btn('Legion Square'),
-        btn('LS Customs'),
-        btn('Maze Bank'),
-        btn('Mirror Park'),
-        btn('Vespucci Beach'),
-        btn('Vinewood'),
-        btn('Sandy Shores'),
-        btn('Pillbox Hospital'),
-      ]},
-      { name:'Other', items:[
-        btn('Teleport To Waypoint'),
-        btn('Teleport To Coords'),
-        btn('Print Current Coords'),
-        btn('Teleport Last Death'),
-      ]},
-    ]
-  },
-  {
-    key:'animations', title:'Animations',
-    sections:[
-      { name:'Force Emotes', items:[
-        btn('Detach All Entities'),
-        btn('Twerk On Them'),
-        btn('Give Them Backshots'),
-        btn('Wank On Them'),
-        btn('Piggyback On Player'),
-        btn('Blame Arrest'),
-        btn('Stop Emote'),
-      ]},
-      { name:'Emote List', items:[
-        drop('Dances',    ['Gangnam Style','Twerk','Shuffle','Break Dance','Waltz','Salsa']),
-        drop('Gestures',  ['Wave','Point','Middle Finger','Thumbs Up','Facepalm','Shrug']),
-        drop('Sits',      ['Park Bench','Chair','Ground','Meditation','Lean Wall']),
-        drop('Idles',     ['Smoke','Phone Call','Lean','Stretch']),
-        btn('Play Emote'),
-        btn('Stop Emote'),
-      ]},
-    ]
-  },
-  {
-    key:'triggers', title:'Triggers',
-    sections:[
-      { name:'Item Spawner', items:[
-        inp('Item Name:', 'e.g. water'),
-        inp('Amount:', 'e.g. 50'),
-        btn('Spawn Item'),
-      ]},
-      { name:'Money Spawner', items:[
-        inp('Amount:', 'e.g. 100000'),
-        btn('Spawn'),
-      ]},
-      { name:'Exploits', items:[
-        btn('Set Police Job'),
-        btn('Set EMS Job'),
-        btn('Steal Player Inventory'),
-        inp('Client Event:', 'event:name'),
-        btn('Fire Client Event'),
-        inp('Server Event:', 'event:name'),
-        btn('Fire Server Event'),
-        btn('Open Admin Menu'),
-        btn('Clear Comms'),
-        btn('Comserv End (-5)'),
-        btn('Give ESX Job (Police)'),
-      ]},
-    ]
-  },
-  {
-    key:'vip', title:'Vip',
-    sections:[
-      { name:'Item Spawner', items:[
-        inp('Name:', '...'),
-        inp('Amount:', '...'),
-        btn('Spawn Item (VIP)'),
-      ]},
-      { name:'Dirty Money', items:[
-        inp('Amount:', 'e.g. 500000'),
-        btn('Launder Money'),
-        btn('Clean Dirty Money'),
-      ]},
-    ]
-  },
-  {
-    key:'settings', title:'.gg/blossoma',
-    sections:[
-      { name:'Menu', items:[
-        btn('Reset Position'),
-        btn('Reload Menu'),
-        btn('Toggle Debug Mode'),
-        inp('Key Bind:', 'virtual key code'),
-      ]},
-      { name:'Design', items:[
-        drop('Accent Color', ['Pink (Default)','Red','Blue','Green','Orange']),
-        drop('Position X', ['Left','Center','Right']),
-        drop('Position Y', ['Top','Middle','Bottom']),
-      ]},
-      { name:'Server Info', items:[
-        btn('Print Server IP'),
-        btn('Print Player Count'),
-        btn('Print Resources'),
-        btn('Copy Server Endpoint'),
-      ]},
-    ]
-  },
-];
-
-// ─── State ────────────────────────────────────────────────────────────────────
-const state = {
-  activeTab: 0,
-  // per-section selection: [tabIdx][sectionIdx] = itemIdx
-  sel: TABS.map(t => t.sections.map(() => 0)),
-  activeSec: TABS.map(t => 0),   // which section is keyboard focus in
-  isTyping: false,
-};
-
-// ─── Notifications ─────────────────────────────────────────────────────────────
-let nTimeout = null;
-function notif(title, msg) {
-  let el = document.getElementById('notif-el');
-  if (el) { el.remove(); clearTimeout(nTimeout); }
-  el = document.createElement('div');
-  el.className = 'notif'; el.id = 'notif-el';
-  el.innerHTML = `<div class="notif-title">${title}</div><div class="notif-body">${msg}</div>`;
-  document.body.appendChild(el);
-  nTimeout = setTimeout(() => {
-    el.classList.add('fade-out');
-    setTimeout(() => el.remove(), 300);
-  }, 3500);
+function showNotification(title, msg) {
+  const n = document.getElementById('notification');
+  document.getElementById('notification-title').textContent = title;
+  document.getElementById('notification-msg').textContent = msg;
+  n.classList.add('show');
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => n.classList.remove('show'), 4000);
 }
 
-// ─── Render ────────────────────────────────────────────────────────────────────
-function renderTabs() {
+// ── Render tab list ────────────────────────────────────────────────────────
+
+function renderSidebar(tabs, activeTab) {
   const list = document.getElementById('tab-list');
   list.innerHTML = '';
-  TABS.forEach((t, i) => {
-    const el = document.createElement('div');
-    el.className = 'tab-item' + (i === state.activeTab ? ' active' : '');
-    el.innerHTML = `<span>${t.title}</span><span class="tab-arrow">›</span>`;
-    el.onclick = () => { state.activeTab = i; state.isTyping = false; render(); };
-    list.appendChild(el);
+  tabs.forEach((tab, i) => {
+    const item = el('div', 'tab-item' + (i === activeTab ? ' active' : ''));
+    item.textContent = tab.label;
+    item.dataset.index = i;
+    item.addEventListener('click', () => {
+      window.postMessage(JSON.stringify({ type: 'tabClick', index: i }));
+    });
+    list.appendChild(item);
   });
 }
 
-function renderContent() {
-  const tab = TABS[state.activeTab];
-  document.getElementById('content-title').textContent = tab.title;
-  document.getElementById('typing-badge').style.display = state.isTyping ? 'block' : 'none';
+// ── Render content ─────────────────────────────────────────────────────────
 
-  const body = document.getElementById('content-body');
+function renderContent(s) {
+  const header = document.getElementById('tab-header-label');
+  const body = document.getElementById('tab-body');
+  const tab = s.tabs[s.activeTab];
+  if (!tab) return;
+
+  header.textContent = tab.label.toUpperCase();
   body.innerHTML = '';
 
-  // Layout: 3-section tabs use two columns with stacked left; others use equal halves or single
-  tab.sections.forEach((sec, si) => {
-    const col = document.createElement('div');
-    col.className = 'section';
+  // Build columns from groups
+  (tab.groups || []).forEach(group => {
+    const col = el('div', 'col' + (group.tall ? ' col-tall' : ''));
+    const grp = el('div', 'group');
+    const lbl = el('div', 'group-label');
+    lbl.textContent = group.label;
+    const scroll = el('div', 'group-scroll');
 
-    const hdr = document.createElement('div');
-    hdr.className = 'section-header';
-    hdr.textContent = sec.name;
-    col.appendChild(hdr);
-
-    const scroll = document.createElement('div');
-    scroll.className = 'section-scroll';
-
-    sec.items.forEach((item, ii) => {
-      const isSel = state.sel[state.activeTab][si] === ii && state.activeSec[state.activeTab] === si;
-      renderItem(scroll, item, ii, si, isSel);
+    (group.items || []).forEach(item => {
+      scroll.appendChild(buildItem(item, s.activeTab, group.id));
     });
 
-    col.appendChild(scroll);
+    grp.appendChild(lbl);
+    grp.appendChild(scroll);
+    col.appendChild(grp);
     body.appendChild(col);
   });
-
-  // scroll selected into view
-  const selEl = body.querySelector('.item.selected');
-  if (selEl) selEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
-function renderItem(parent, item, ii, si, isSel) {
-  if (item.type === 'checkbox') {
-    const el = document.createElement('div');
-    el.className = 'item' + (isSel ? ' selected' : '');
-    const lbl = document.createElement('span');
-    lbl.className = 'item-label';
-    lbl.textContent = item.label;
-    el.appendChild(lbl);
-    if (item.det) {
-      const d = document.createElement('span');
-      d.className = 'badge det';
-      d.textContent = 'DET';
-      el.appendChild(d);
-    }
-    const tog = document.createElement('div');
-    tog.className = 'item-toggle' + (item.on ? ' on' : '');
-    el.appendChild(tog);
-    el.onclick = () => {
-      state.sel[state.activeTab][si] = ii;
-      state.activeSec[state.activeTab] = si;
-      item.on = !item.on;
-      render();
-      notif('blossom Menu', `${item.label}: ${item.on ? 'ON' : 'OFF'}`);
-    };
-    parent.appendChild(el);
-    return;
-  }
-
-  if (item.type === 'button') {
-    const el = document.createElement('div');
-    el.className = 'item' + (isSel ? ' selected' : '');
-    const lbl = document.createElement('span');
-    lbl.className = 'item-label';
-    lbl.textContent = item.label;
-    el.appendChild(lbl);
-    if (item.det) {
-      const d = document.createElement('span');
-      d.className = 'badge det';
-      d.textContent = 'DET';
-      el.appendChild(d);
-    }
-    el.onclick = () => {
-      state.sel[state.activeTab][si] = ii;
-      state.activeSec[state.activeTab] = si;
-      render();
-      notif('[NOTIFICATION] blossom Menu', getMsg(item.label));
-    };
-    parent.appendChild(el);
-    return;
+function buildItem(item, tabIdx, groupId) {
+  if (item.type === 'divider') {
+    return el('div', 'item-divider');
   }
 
   if (item.type === 'input') {
-    const el = document.createElement('div');
-    el.className = 'item input-item' + (isSel ? ' selected' : '');
-    const lbl = document.createElement('div');
-    lbl.className = 'input-lbl';
+    const row = el('div', 'item-input');
+    const lbl = el('label');
+    lbl.textContent = item.label + ':';
+    const inp = el('input');
+    inp.type = 'text';
+    inp.value = item.value || '';
+    inp.placeholder = item.placeholder || '';
+    inp.dataset.inputId = item.id;
+    inp.addEventListener('focus', () => {
+      inp.classList.add('typing');
+      window.postMessage(JSON.stringify({ type: 'inputFocus', id: item.id }));
+    });
+    inp.addEventListener('blur', () => {
+      inp.classList.remove('typing');
+      window.postMessage(JSON.stringify({ type: 'inputBlur', id: item.id, value: inp.value }));
+    });
+    inp.addEventListener('input', () => {
+      window.postMessage(JSON.stringify({ type: 'inputChange', id: item.id, value: inp.value }));
+    });
+    row.appendChild(lbl);
+    row.appendChild(inp);
+    return row;
+  }
+
+  if (item.type === 'select') {
+    const row = el('div', 'item-select');
+    const lbl = el('label');
+    lbl.textContent = item.label + ':';
+    const sel = el('select');
+    (item.options || []).forEach((opt, i) => {
+      const o = document.createElement('option');
+      o.value = i;
+      o.textContent = opt;
+      if (i === (item.selected || 0)) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', () => {
+      window.postMessage(JSON.stringify({ type: 'selectChange', id: item.id, value: parseInt(sel.value) }));
+    });
+    row.appendChild(lbl);
+    row.appendChild(sel);
+    return row;
+  }
+
+  if (item.type === 'slider') {
+    const row = el('div', 'item-slider');
+    const lbl = el('label');
     lbl.textContent = item.label;
-    const inp = document.createElement('input');
-    inp.className = 'input-f';
-    inp.placeholder = item.placeholder;
-    inp.value = item.value;
-    inp.oninput = e => item.value = e.target.value;
-    inp.onfocus = () => {
-      state.sel[state.activeTab][si] = ii;
-      state.activeSec[state.activeTab] = si;
-      state.isTyping = true;
-      render();
-    };
-    inp.onblur = () => { state.isTyping = false; render(); };
-    inp.onclick = e => { e.stopPropagation(); inp.focus(); };
-    el.appendChild(lbl);
-    el.appendChild(inp);
-    el.onclick = () => { state.sel[state.activeTab][si] = ii; state.activeSec[state.activeTab] = si; render(); };
-    parent.appendChild(el);
-    if (isSel && state.isTyping) setTimeout(() => inp.focus(), 0);
-    return;
+    const inp = el('input');
+    inp.type = 'range';
+    inp.min = item.min || 0;
+    inp.max = item.max || 255;
+    inp.value = item.value || 0;
+    const val = el('div', 'slider-val');
+    val.textContent = item.value || 0;
+    inp.addEventListener('input', () => {
+      val.textContent = inp.value;
+      window.postMessage(JSON.stringify({ type: 'sliderChange', id: item.id, value: parseInt(inp.value) }));
+    });
+    row.appendChild(lbl);
+    row.appendChild(inp);
+    row.appendChild(val);
+    return row;
   }
 
-  if (item.type === 'dropdown') {
-    const el = document.createElement('div');
-    el.className = 'item dropdown-item' + (isSel ? ' selected' : '');
-    const lbl = document.createElement('div');
-    lbl.className = 'dropdown-lbl';
-    lbl.textContent = item.label;
-    const val = document.createElement('div');
-    val.className = 'dropdown-val';
-    const txt = document.createElement('span');
-    txt.textContent = item.options[item.selected];
-    const arr = document.createElement('span');
-    arr.className = 'dropdown-arrow';
-    arr.textContent = '▾';
-    val.appendChild(txt);
-    val.appendChild(arr);
-    el.appendChild(lbl);
-    el.appendChild(val);
-    el.onclick = () => {
-      state.sel[state.activeTab][si] = ii;
-      state.activeSec[state.activeTab] = si;
-      item.selected = (item.selected + 1) % item.options.length;
-      render();
-      notif('blossom Menu', `${item.label}: ${item.options[item.selected]}`);
-    };
-    parent.appendChild(el);
+  // Default: button/toggle
+  const row = el('div', 'item');
+  const isSelected = item.selected;
+  if (isSelected) row.classList.add('selected');
+
+  const labelEl = el('span', 'item-label' + (item.detect ? ' detect' : ''));
+  labelEl.textContent = item.label;
+  row.appendChild(labelEl);
+
+  if (item.state !== undefined && item.state !== null) {
+    const badge = el('span', 'badge ' + (item.state === 'on' ? 'badge-on' : 'badge-off'));
+    badge.textContent = item.state === 'on' ? 'ON' : 'OFF';
+    row.appendChild(badge);
+  } else if (item.type === 'button') {
+    const badge = el('span', 'badge badge-btn');
+    badge.textContent = '›';
+    row.appendChild(badge);
   }
+
+  row.addEventListener('click', () => {
+    window.postMessage(JSON.stringify({ type: 'itemClick', tabIdx, groupId, itemId: item.id }));
+  });
+
+  return row;
 }
 
-function getMsg(label) {
-  const map = {
-    'Godmode': 'Godmode toggled.',
-    'Change Model': 'Model change attempted.',
-    'Kill Player': 'Kill sent.',
-    'Explode Player': 'Explosion triggered.',
-    'Teleport To Player': 'Teleported.',
-    'Repair Vehicle': 'Vehicle repaired.',
-    'Max Upgrade Vehicle': 'Vehicle maxed.',
-    'Delete Vehicle': 'Vehicle deleted.',
-    'Spawn Item': 'Item spawned.',
-    'Spawn': 'Money spawned.',
-    'Set Police Job': 'Police job set.',
-    'Set EMS Job': 'EMS job set.',
-    'Open Admin Menu': 'Attempting to open admin menu.',
-    'Clear Comms': 'Comms cleared.',
-    'Print Current Coords': 'Coords printed to console.',
-    'Detach All Entities': 'Entities detached.',
-    'Launch All Players': 'Everyone launched.',
-    'Steal Player Inventory': 'Stealing inventory...',
-    'Spoof All Weapons': 'All weapons spoofed.',
-    'Give Max Ammo': 'Max ammo given.',
-  };
-  return map[label] || 'Action executed.';
-}
+// ── Main render ────────────────────────────────────────────────────────────
 
-function render() {
-  renderTabs();
-  renderContent();
-}
+function render(s) {
+  if (!s) { document.getElementById('root').classList.remove('visible'); return; }
+  state = s;
 
-// ─── Keyboard ──────────────────────────────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if (state.isTyping) {
-    if (e.key === 'Enter' || e.key === 'Escape') { state.isTyping = false; render(); }
-    return;
+  document.getElementById('root').classList.add('visible');
+
+  // Update CSS accent if RGB provided
+  if (s.accentR !== undefined) {
+    const r = s.accentR, g = s.accentG, b = s.accentB;
+    document.documentElement.style.setProperty('--accent', `rgb(${r},${g},${b})`);
+    document.documentElement.style.setProperty('--accent-dim', `rgba(${r},${g},${b},0.15)`);
+    document.documentElement.style.setProperty('--accent-glow', `rgba(${r},${g},${b},0.35)`);
   }
 
-  const tab = TABS[state.activeTab];
-  const si = state.activeSec[state.activeTab];
-  const sec = tab.sections[si];
-  const itemCount = sec ? sec.items.length : 0;
+  renderSidebar(s.tabs, s.activeTab);
+  renderContent(s);
 
-  if (e.key === 'Tab') {
-    e.preventDefault();
-    state.activeTab = (state.activeTab + (e.shiftKey ? -1 : 1) + TABS.length) % TABS.length;
-    state.isTyping = false;
-    render();
-  } else if (e.key === 'ArrowLeft') {
-    if (tab.sections.length > 1) {
-      state.activeSec[state.activeTab] = (si - 1 + tab.sections.length) % tab.sections.length;
-      render();
+  // Typing indicator
+  document.getElementById('typing-indicator').style.display = s.isTyping ? 'block' : 'none';
+}
+
+// ── Message listener ───────────────────────────────────────────────────────
+
+window.addEventListener('message', function(e) {
+  try {
+    const msg = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+    if (msg.action === 'update' || msg.action === 'show') {
+      render(msg.data);
+    } else if (msg.action === 'hide') {
+      document.getElementById('root').classList.remove('visible');
+    } else if (msg.action === 'notify') {
+      showNotification(msg.title, msg.msg);
+    } else if (msg.action === 'setInput') {
+      const inp = document.querySelector('[data-input-id="' + msg.id + '"]');
+      if (inp) inp.value = msg.value || '';
     }
-  } else if (e.key === 'ArrowRight') {
-    if (tab.sections.length > 1) {
-      state.activeSec[state.activeTab] = (si + 1) % tab.sections.length;
-      render();
-    }
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    state.sel[state.activeTab][si] = (state.sel[state.activeTab][si] - 1 + itemCount) % itemCount;
-    render();
-  } else if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    state.sel[state.activeTab][si] = (state.sel[state.activeTab][si] + 1) % itemCount;
-    render();
-  } else if (e.key === 'Enter') {
-    const item = sec && sec.items[state.sel[state.activeTab][si]];
-    if (!item) return;
-    if (item.type === 'checkbox') {
-      item.on = !item.on;
-      render();
-      notif('blossom Menu', `${item.label}: ${item.on ? 'ON' : 'OFF'}`);
-    } else if (item.type === 'button') {
-      render();
-      notif('[NOTIFICATION] blossom Menu', getMsg(item.label));
-    } else if (item.type === 'input') {
-      state.isTyping = true;
-      render();
-    } else if (item.type === 'dropdown') {
-      item.selected = (item.selected + 1) % item.options.length;
-      render();
-      notif('blossom Menu', `${item.label}: ${item.options[item.selected]}`);
-    }
-  } else if (e.key === 'Escape') {
-    state.isTyping = false; render();
-  }
+  } catch(err) {}
 });
-
-// ─── Init ──────────────────────────────────────────────────────────────────────
-render();
-notif('[NOTIFICATION] blossom Menu', 'Finished Enjoy.');
 </script>
 </body>
-</html>
+</html>]]
+
+-- ═══════════════════════════════════════════════════════
+--  SETUP & DUI
+-- ═══════════════════════════════════════════════════════
+
+local tempPath = os.getenv("TEMP") or os.getenv("TMP") or "C:/Windows/Temp"
+local htmlFilePath = tempPath .. "/blossom_menu.html"
+local f = io.open(htmlFilePath, "w")
+if f then f:write(menuHTML); f:close() end
+
+local Dui = MachoCreateDui("file:///" .. htmlFilePath:gsub("\\", "/"))
+local MenuOpen = false
+local isTyping = false
+local accentR, accentG, accentB = 255, 61, 255
+
+-- ═══════════════════════════════════════════════════════
+--  UTILITIES
+-- ═══════════════════════════════════════════════════════
+
+local function CheckResource(resource)
+    return GetResourceState(resource) == "started"
+end
+
+local function inject(resource, code)
+    MachoInjectResource(resource, code)
+end
+
+local function injectAny(code)
+    local res = (CheckResource("monitor") and "monitor")
+             or (CheckResource("oxmysql") and "oxmysql")
+             or "any"
+    inject(res, code)
+end
+
+local function SendToDui(action, data)
+    if Dui and MenuOpen then
+        MachoSendDuiMessage(Dui, json.encode({ action = action, data = data }))
+    end
+end
+
+local function notify(title, msg)
+    if Dui then
+        MachoSendDuiMessage(Dui, json.encode({ action = "notify", title = title, msg = msg }))
+    end
+    MachoMenuNotification(title, msg)
+end
+
+-- ═══════════════════════════════════════════════════════
+--  INPUT STORE  (id → current value)
+-- ═══════════════════════════════════════════════════════
+
+local InputValues = {
+    playerID      = "",
+    modelName     = "",
+    coordsXYZ     = "",
+    vehicleModel  = "",
+    licensePlate  = "",
+    itemName      = "",
+    itemAmount    = "",
+    moneyAmount   = "",
+    clientEvent   = "",
+    serverEvent   = "",
+    weaponName    = "",
+    vipItemName   = "",
+    vipItemAmount = "",
+    outfitSlot    = "",
+}
+
+-- ═══════════════════════════════════════════════════════
+--  TOGGLE STATES
+-- ═══════════════════════════════════════════════════════
+
+local Toggles = {
+    -- Self
+    godmode         = false,
+    invisibility    = false,
+    noRagdoll       = false,
+    infiniteStamina = false,
+    tinyPed         = false,
+    noClip          = false,
+    freeCamera      = false,
+    superJump       = false,
+    levitation      = false,
+    superStrength   = false,
+    superPunch      = false,
+    throwFromVeh    = false,
+    forceThirdPerson= false,
+    forceDriveby    = false,
+    antiHeadshot    = false,
+    antiFreeze      = false,
+    antiBlackscreen = false,
+    superSpeed      = false,
+    soloSession     = false,
+    pickupThrow     = false,
+    txNoclip        = false,
+    openNearbyInv   = false,
+    -- Weapon
+    infiniteAmmo    = false,
+    explosiveAmmo   = false,
+    oneshotKill     = false,
+    noReload        = false,
+    rainbowGun      = false,
+    -- Vehicle
+    vehGodmode      = false,
+    vehInvincible   = false,
+    forceVehEngine  = false,
+    vehAutoRepair   = false,
+    freezeVeh       = false,
+    vehHop          = false,
+    rainbowVeh      = false,
+    driftMode       = false,
+    easyHandling    = false,
+    shiftBoost      = false,
+    instantBreaks   = false,
+    unlimitedFuel   = false,
+    infFuel         = false,
+    enginePowerBoost= false,
+    -- Server
+    spectatePlayer  = false,
+    killEveryone    = false,
+    permKillEveryone= false,
+    -- Settings
+    rgbMenu         = false,
+}
+
+-- Dropdown selections
+local Selects = {
+    animalPed     = 0,
+    freemodeSex   = 0,
+    attachCar     = 0,
+    attachEntity  = 0,
+    attachCarAll  = 0,
+    attachEntAll  = 0,
+    emoteChoice   = 0,
+    aimStyle      = 0,
+    weaponCat     = 0,
+    outfitHat     = 0,
+    outfitMask    = 0,
+    outfitGlasses = 0,
+    outfitTorso   = 0,
+    outfitTshirt  = 0,
+    outfitPants   = 0,
+    outfitShoes   = 0,
+    attachPedModel= 0,
+}
+
+-- ═══════════════════════════════════════════════════════
+--  DATA TABLES
+-- ═══════════════════════════════════════════════════════
+
+local ANIMAL_PEDS = {"Boar","Cat","Chicken","Chimp","Cow","Coyote","Crow","Deer","Dolphin","Fish","Humpback","Husky","Killer Whale","Mountain Lion","Pig","Pigeon","Poodle","Pug","Rabbit","Rat","Retriever","Rhesus Monkey","Rottweiler","Seagull","Shepherd","Stingray","Tiger Shark","Hammerhead Shark"}
+local ANIMAL_MODELS = {"a_c_boar","a_c_cat_01","a_c_chickenhawk","a_c_chimp","a_c_cow","a_c_coyote","a_c_crow","a_c_deer","a_c_dolphin","a_c_fish","a_c_humpback","a_c_husky","a_c_killerwhale","a_c_mtlion","a_c_pig","a_c_pigeon","a_c_poodle","a_c_pug","a_c_rabbit_01","a_c_rat","a_c_retriever","a_c_rhesus","a_c_rottweiler","a_c_seagull","a_c_shepherd","a_c_stingray","a_c_sharktiger","a_c_sharkhammer"}
+local ATTACH_CARS = {"pounder2","pounder","mule","phantom","hauler","mixer","bus","rhino","insurgent","luxor2"}
+local ATTACH_ENTS = {"prop_roadcone02a","prop_dumpster_01a","prop_bench_01a","prop_bin_01a","prop_skip_01a","prop_portaloo_01a"}
+local PED_MODELS  = {"mp_m_freemode_01","mp_f_freemode_01","s_m_y_cop_01","s_m_y_swat_01","s_m_m_paramedic_01","s_m_y_marine_01","g_m_y_ballasog"}
+local PED_LABELS  = {"Freemode Male","Freemode Female","Police Male","SWAT","Paramedic","Army","Gang"}
+local ATTACH_CAR_ALL = {"luxor2","banshee","bullet","cheetah","entityxf","infernus","stinger","stingergt","voltic","zentorno"}
+local ATTACH_ENT_ALL = {"prop_cs1_14b_traind","prop_barrier_work05","prop_dumpster_01a","prop_roadcone02a","prop_bench_01a","prop_bin_01a","prop_container_01a","prop_roadcone01a","prop_skip_01a"}
+local EMOTE_LABELS= {"Slapped","Punched","Give BJ","Receive BJ","Headbutt","Hug","StreetSexFemale","StreetSexMale","Piggyback","Carry","Butt Rape","Amazing Head","Lesbian Scissors"}
+local EMOTE_MAP   = {"slapped","punched","receiveblowjob","GiveBlowjob","headbutted","hug4","streetsexfemale","streetsexmale","pback2","carry3",".....gta298",".....gta304",".....gta284"}
+local AIM_STYLES  = {"Default","Gangster","Wild","Red Neck"}
+local WEAPON_CATS = {"Pistols","SMGs","Shotguns","Rifles","Snipers","Heavy","Melee","Throwables"}
+local WEAPON_CAT_DATA = {
+    ["Pistols"]    = {"weapon_pistol","weapon_pistol_mk2","weapon_combatpistol","weapon_appistol","weapon_pistol50","weapon_snspistol","weapon_heavypistol","weapon_revolver","weapon_revolver_mk2","weapon_doubleaction"},
+    ["SMGs"]       = {"weapon_microsmg","weapon_smg","weapon_smg_mk2","weapon_assaultsmg","weapon_combatpdw","weapon_machinepistol","weapon_minismg"},
+    ["Shotguns"]   = {"weapon_pumpshotgun","weapon_pumpshotgun_mk2","weapon_sawnoffshotgun","weapon_assaultshotgun","weapon_bullpupshotgun","weapon_heavyshotgun","weapon_musket","weapon_dbshotgun","weapon_autoshotgun"},
+    ["Rifles"]     = {"weapon_assaultrifle","weapon_assaultrifle_mk2","weapon_carbinerifle","weapon_carbinerifle_mk2","weapon_advancedrifle","weapon_specialcarbine","weapon_specialcarbine_mk2","weapon_bullpuprifle","weapon_bullpuprifle_mk2","weapon_militaryrifle"},
+    ["Snipers"]    = {"weapon_sniperrifle","weapon_heavysniper","weapon_heavysniper_mk2","weapon_marksmanrifle","weapon_marksmanrifle_mk2"},
+    ["Heavy"]      = {"weapon_rpg","weapon_grenadelauncher","weapon_minigun","weapon_firework","weapon_railgun","weapon_hominglauncher","weapon_compactlauncher","weapon_widowmaker"},
+    ["Melee"]      = {"weapon_knife","weapon_nightstick","weapon_hammer","weapon_bat","weapon_crowbar","weapon_golfclub","weapon_bottle","weapon_dagger","weapon_hatchet","weapon_machete","weapon_switchblade","weapon_battleaxe","weapon_poolcue","weapon_wrench"},
+    ["Throwables"] = {"weapon_grenade","weapon_stickybomb","weapon_proxmine","weapon_teargas","weapon_molotov","weapon_petrolcan","weapon_snowball","weapon_pipebomb","weapon_bzgas"},
+}
+
+local function GetValidPlayerID()
+    local idStr = InputValues.playerID
+    if idStr and idStr ~= "" then
+        local id = tonumber(idStr)
+        if id then return id end
+    end
+    return 0
+end
+
+-- ═══════════════════════════════════════════════════════
+--  BUILD MENU STATE
+-- ═══════════════════════════════════════════════════════
+
+local ActiveTab = 0
+local tabs = {
+    {label="Self"},
+    {label="Players"},
+    {label="Server"},
+    {label="Weapons"},
+    {label="Vehicle"},
+    {label="Teleport"},
+    {label="Animations"},
+    {label="Triggers"},
+    {label="Vip"},
+    {label=".gg/blossoma"},
+}
+
+local function toggle_item(label, key, detect)
+    return {
+        type="toggle", id=key, label=label,
+        state=Toggles[key] and "on" or "off",
+        detect=detect
+    }
+end
+
+local function button_item(label, id)
+    return {type="button", id=id, label=label}
+end
+
+local function input_item(lbl, id, ph)
+    return {type="input", id=id, label=lbl, value=InputValues[id] or "", placeholder=ph or ""}
+end
+
+local function select_item(lbl, id, opts, sel)
+    return {type="select", id=id, label=lbl, options=opts, selected=sel or 0}
+end
+
+local function slider_item(lbl, id, min, max, val)
+    return {type="slider", id=id, label=lbl, min=min, max=max, value=val}
+end
+
+local function buildOutfitSliders()
+    local items = {}
+    local parts = {"Hat","Mask","Glasses","Torso","T-Shirt","Pants","Shoes"}
+    local ids    = {"outfitHat","outfitMask","outfitGlasses","outfitTorso","outfitTshirt","outfitPants","outfitShoes"}
+    local opts = {}
+    for i=1,200 do opts[i] = tostring(i) end
+    for i, part in ipairs(parts) do
+        items[#items+1] = select_item(part, ids[i], opts, Selects[ids[i]])
+    end
+    items[#items+1] = button_item("Apply Outfit", "applyOutfit")
+    return items
+end
+
+local function buildSelfTab()
+    local toggles = {
+        toggle_item("Godmode (DETECTABLE)", "godmode", true),
+        toggle_item("Invisibility", "invisibility"),
+        toggle_item("No Ragdoll", "noRagdoll"),
+        toggle_item("Infinite Stamina", "infiniteStamina"),
+        toggle_item("Tiny Ped (DETECTABLE)", "tinyPed", true),
+        toggle_item("No Clip (DETECTABLE)", "noClip", true),
+        toggle_item("Free Camera", "freeCamera"),
+        toggle_item("Super Jump", "superJump"),
+        toggle_item("Levitation", "levitation"),
+        toggle_item("Super Strength", "superStrength"),
+        toggle_item("Super Punch", "superPunch"),
+        toggle_item("Throw From Vehicle", "throwFromVeh"),
+        toggle_item("Force Third Person", "forceThirdPerson"),
+        toggle_item("Force Driveby", "forceDriveby"),
+        toggle_item("Anti-Headshot", "antiHeadshot"),
+        toggle_item("Anti-Freeze", "antiFreeze"),
+        toggle_item("Anti-Blackscreen", "antiBlackscreen"),
+        toggle_item("Super Speed", "superSpeed"),
+        toggle_item("Solo Session", "soloSession"),
+        toggle_item("Pickup/Throw Vehicles", "pickupThrow"),
+        toggle_item("TX Noclip", "txNoclip"),
+    }
+
+    local modelItems = {
+        input_item("Model", "modelName", "mp_m_freemode_01"),
+        button_item("Change Model", "changeModel"),
+        button_item(".gg/blossoma Drip", "blossomaDrip"),
+        button_item(".gg/blossoma Mafia Drip", "blossomaMafiaDrip"),
+        select_item("Animal", "animalPed", ANIMAL_PEDS, Selects.animalPed),
+        button_item("Spawn Animal", "spawnAnimal"),
+        select_item("Freemode", "freemodeSex", {"Male","Female"}, Selects.freemodeSex),
+        button_item("Apply Freemode", "applyFreemode"),
+    }
+
+    local funcItems = {
+        button_item("Toggle Player IDs", "togglePlayerIDs"),
+        button_item("Laser Eyes (Left Alt)", "laserEyes"),
+        toggle_item("Open Nearby Inv (F6)", "openNearbyInv"),
+        button_item("Heal", "healSelf"),
+        button_item("Armor", "armorSelf"),
+        button_item("Fill Hunger", "fillHunger"),
+        button_item("Fill Thirst", "fillThirst"),
+        button_item("Revive", "reviveSelf"),
+        button_item("Suicide", "suicideSelf"),
+        button_item("Force Ragdoll", "forceRagdoll"),
+        button_item("Clear Task", "clearTask"),
+        button_item("Clear Vision", "clearVision"),
+        button_item("Force GPS", "forceGPS"),
+        button_item("FPS Booster", "fpsBooster"),
+        button_item("Give TX Admin", "giveTxAdmin"),
+        button_item("Randomize Outfit", "randomizeOutfit"),
+        {type="divider"},
+    }
+    -- Outfit selectors
+    local parts = {"Hat","Mask","Glasses","Torso","T-Shirt","Pants","Shoes"}
+    local ids    = {"outfitHat","outfitMask","outfitGlasses","outfitTorso","outfitTshirt","outfitPants","outfitShoes"}
+    local opts = {}; for i=1,200 do opts[i]=tostring(i) end
+    for i,part in ipairs(parts) do
+        funcItems[#funcItems+1] = select_item(part, ids[i], opts, Selects[ids[i]])
+    end
+    funcItems[#funcItems+1] = button_item("Apply Outfit", "applyOutfit")
+
+    return {
+        { id="toggles", label="Toggles", tall=true, items=toggles },
+        { id="model",   label="Model",   items=modelItems },
+        { id="funcs",   label="Functions", items=funcItems },
+    }
+end
+
+local function buildPlayersTab()
+    local targets = {
+        input_item("Player ID", "playerID", "Server ID"),
+        button_item("Teleport To Player", "tpToPlayer"),
+        button_item("Kill Player", "killPlayer"),
+        toggle_item("Spectate Player", "spectatePlayer"),
+        button_item("Force Hands Up", "handsUp"),
+        button_item("Steal Outfit", "stealOutfit"),
+        toggle_item("Talk With Player", "talkPlayer"),
+        button_item("Explode Player Vehicle", "explodePlayerVeh"),
+        button_item("Steal Player Vehicle", "stealPlayerVeh"),
+        button_item("Kick From Vehicle", "kickFromVeh"),
+        button_item("Glitch Player Vehicle", "glitchPlayerVeh"),
+        select_item("Attach Car", "attachCar", ATTACH_CARS, Selects.attachCar),
+        button_item("Attach Car → Player", "attachCarPlayer"),
+        select_item("Attach Entity", "attachEntity", ATTACH_ENTS, Selects.attachEntity),
+        button_item("Attach Entity → Player", "attachEntPlayer"),
+        select_item("Ped Model", "attachPedModel", PED_LABELS, Selects.attachPedModel),
+        button_item("Change Player Ped", "changePlayerPed"),
+    }
+
+    local trolling = {
+        button_item("Send To Sky", "sendToSky"),
+        button_item("Explode Player", "explodePlayer"),
+        button_item("Launch Player", "launchPlayer"),
+        button_item("Cage Player", "cagePlayer"),
+        button_item("Glitch Player", "glitchPlayer"),
+        button_item("Fling Player", "flingPlayer"),
+    }
+
+    return {
+        { id="actions", label="Actions", items=targets },
+        { id="trolling", label="Trolling", items=trolling },
+    }
+end
+
+local function buildServerTab()
+    local playerActions = {
+        input_item("Player ID", "playerID", "Server ID"),
+        button_item("Kill Player", "srvKillPlayer"),
+        button_item("Taze Player", "tazePlayer"),
+        button_item("Cage Player", "srvCagePlayer"),
+        button_item("Explode Player (DETECTABLE)", "srvExplodePlayer"),
+        button_item("Teleport To Player", "srvTpToPlayer"),
+        button_item("Kick From Vehicle", "srvKickFromVeh"),
+        button_item("Freeze Player", "freezePlayer"),
+        button_item("Glitch Player", "srvGlitchPlayer"),
+        button_item("Limbo Player", "limboPlayer"),
+        toggle_item("Spectate Player", "spectatePlayer"),
+        button_item("Give All Nearby Objects", "giveNearbyObjects"),
+        button_item("Copy Appearance", "copyAppearance"),
+    }
+
+    local everyoneActions = {
+        button_item("Cone Everyone", "coneEveryone"),
+        button_item("Explode All Players", "explodeAllPlayers"),
+        button_item("Explode All Vehicles", "explodeAllVehicles"),
+        button_item("Delete All Vehicles", "deleteAllVehicles"),
+        button_item("Delete All Peds", "deleteAllPeds"),
+        button_item("Delete All Objects", "deleteAllObjects"),
+        button_item("Cage All Players", "cageAllPlayers"),
+        button_item("Launch All Players", "launchAllPlayers"),
+        toggle_item("Kill Everyone", "killEveryone"),
+        toggle_item("Permanent Kill Everyone", "permKillEveryone"),
+        select_item("Attach Car →All", "attachCarAll", ATTACH_CAR_ALL, Selects.attachCarAll),
+        button_item("Attach Car → Everyone", "attachCarEveryone"),
+        select_item("Entity →All", "attachEntAll", ATTACH_ENT_ALL, Selects.attachEntAll),
+        button_item("Attach Entity → Everyone", "attachEntEveryone"),
+    }
+
+    return {
+        { id="player",   label="Player",   items=playerActions },
+        { id="everyone", label="Everyone", items=everyoneActions },
+    }
+end
+
+local function buildWeaponsTab()
+    local mods = {
+        toggle_item("Infinite Ammo", "infiniteAmmo"),
+        toggle_item("Explosive Ammo (DETECTABLE)", "explosiveAmmo", true),
+        toggle_item("Oneshot Kill", "oneshotKill"),
+        toggle_item("No Reload", "noReload"),
+        toggle_item("Rainbow Gun", "rainbowGun"),
+        button_item("Remove All Weapons", "removeAllWeapons"),
+        button_item("Refill Ammo", "refillAmmo"),
+        button_item("Give Max Ammo", "giveMaxAmmo"),
+        button_item("Spoof All Weapons", "spoofAllWeapons"),
+        select_item("Aiming Style", "aimStyle", AIM_STYLES, Selects.aimStyle),
+        button_item("Apply Aiming Style", "applyAimStyle"),
+    }
+
+    local catWeaponList = {}
+    catWeaponList[#catWeaponList+1] = input_item("Weapon", "weaponName", "weapon_pistol")
+    catWeaponList[#catWeaponList+1] = button_item("Spawn Weapon", "spawnWeapon")
+    catWeaponList[#catWeaponList+1] = {type="divider"}
+    for _, cat in ipairs(WEAPON_CATS) do
+        local weapons = WEAPON_CAT_DATA[cat] or {}
+        local labels = {}
+        for _, w in ipairs(weapons) do
+            labels[#labels+1] = w:gsub("weapon_",""):gsub("_"," "):gsub("^%l", string.upper)
+        end
+        catWeaponList[#catWeaponList+1] = select_item(cat, "wcat_"..cat, labels, 0)
+        catWeaponList[#catWeaponList+1] = button_item("Spawn "..cat, "spawnCat_"..cat)
+    end
+
+    return {
+        { id="mods",    label="Mods",    items=mods },
+        { id="spawner", label="Spawner", items=catWeaponList },
+    }
+end
+
+local function buildVehicleTab()
+    local mods = {
+        toggle_item("Vehicle Godmode", "vehGodmode"),
+        toggle_item("Vehicle Invincible", "vehInvincible"),
+        toggle_item("Force Vehicle Engine", "forceVehEngine"),
+        toggle_item("Vehicle Auto Repair", "vehAutoRepair"),
+        toggle_item("Freeze Vehicle", "freezeVeh"),
+        toggle_item("Vehicle Hop", "vehHop"),
+        toggle_item("Rainbow Vehicle", "rainbowVeh"),
+        toggle_item("Drift Mode (Hold Shift)", "driftMode"),
+        toggle_item("Easy Handling", "easyHandling"),
+        toggle_item("Shift Boost", "shiftBoost"),
+        toggle_item("Instant Breaks", "instantBreaks"),
+        toggle_item("Unlimited Fuel", "unlimitedFuel"),
+    }
+
+    local actions = {
+        toggle_item("Infinite Fuel", "infFuel"),
+        toggle_item("Engine Power Boost", "enginePowerBoost"),
+        button_item("Repair Vehicle", "repairVeh"),
+        button_item("Flip Vehicle", "flipVeh"),
+        button_item("Clean Vehicle", "cleanVeh"),
+        button_item("Delete Vehicle", "deleteVeh"),
+        button_item("Toggle Vehicle Engine", "toggleVehEngine"),
+        button_item("Max Vehicle Upgrades", "maxVehUpgrades"),
+        button_item("Teleport Into Closest Vehicle", "tpIntoClosestVeh"),
+        button_item("Unlock Closest Vehicle", "unlockClosestVeh"),
+        button_item("Lock Closest Vehicle", "lockClosestVeh"),
+        button_item("Print Custom Cars", "printCustomCars"),
+        input_item("License Plate", "licensePlate", "BLOSSOM"),
+        button_item("Set License Plate", "setLicensePlate"),
+        input_item("Vehicle Model", "vehicleModel", "zentorno"),
+        button_item("Spawn Car", "spawnCar"),
+    }
+
+    return {
+        { id="mods",    label="Mods",    items=mods },
+        { id="actions", label="Actions", items=actions },
+    }
+end
+
+local function buildTeleportTab()
+    local locations = {
+        input_item("Coords", "coordsXYZ", "x, y, z"),
+        button_item("Teleport to Coords", "tpToCoords"),
+        button_item("Teleport to Waypoint", "tpToWaypoint"),
+        {type="divider"},
+        button_item("FIB Building", "tp_fib"),
+        button_item("Mission Row PD", "tp_pd"),
+        button_item("Pillbox Hospital", "tp_hospital"),
+        button_item("Del Perro Pier", "tp_pier"),
+        button_item("Grove Street", "tp_grove"),
+        button_item("Legion Square", "tp_legion"),
+        button_item("LS Customs", "tp_customs"),
+        button_item("Maze Bank", "tp_maze"),
+        button_item("Mirror Park", "tp_mirror"),
+        button_item("Vespucci Beach", "tp_beach"),
+        button_item("Vinewood", "tp_vinewood"),
+        button_item("Sandy Shores", "tp_sandy"),
+    }
+
+    local other = {
+        button_item("Print Current Coords", "printCoords"),
+    }
+
+    return {
+        { id="locations", label="Locations", items=locations },
+        { id="other",     label="Other",     items=other },
+    }
+end
+
+local function buildAnimationsTab()
+    local force = {
+        button_item("Detach All Entities", "detachAllEntities"),
+        button_item("Twerk On Them", "animTwerk"),
+        button_item("Give Them Backshots", "animBackshots"),
+        button_item("Wank On Them", "animWank"),
+        button_item("Piggyback On Player", "animPiggyback"),
+        button_item("Blame Arrest", "animBlameArrest"),
+        button_item("Blame Carry", "animBlameCarry"),
+        button_item("Sit On Them", "animSitOnThem"),
+        button_item("Ride Driver", "animRideDriver"),
+        button_item("Blow Driver", "animBlowDriver"),
+        button_item("Meditate On Them", "animMeditate"),
+    }
+
+    local emoteList = {
+        select_item("Emote Choice", "emoteChoice", EMOTE_LABELS, Selects.emoteChoice),
+        button_item("Give Emote", "giveEmote"),
+    }
+
+    return {
+        { id="force",     label="Force Emotes", items=force },
+        { id="emotelist", label="Emote List",   items=emoteList },
+    }
+end
+
+local function buildTriggersTab()
+    local itemSpawner = {
+        input_item("Name", "itemName", "item_name"),
+        input_item("Amount", "itemAmount", "1"),
+        button_item("Spawn Item", "spawnItem"),
+    }
+
+    local moneySpawner = {
+        input_item("Amount", "moneyAmount", "1000"),
+        button_item("Spawn Money", "spawnMoney"),
+    }
+
+    local exploits = {
+        button_item("Set Police Job", "setPoliceJob"),
+        button_item("Set EMS Job", "setEmsJob"),
+        button_item("Steal Player Inventory", "stealPlayerInv"),
+        input_item("Client Event", "clientEvent", "event:name"),
+        button_item("Fire Client Event", "fireClientEvent"),
+        input_item("Server Event", "serverEvent", "event:name"),
+        button_item("Fire Server Event", "fireServerEvent"),
+        button_item("Open Admin Menu", "openAdminMenu"),
+        button_item("Clear Comms", "clearComms"),
+        button_item("Give ESX Job (Police)", "giveEsxJob"),
+        button_item("Comserv End (-5)", "comservEnd"),
+    }
+
+    return {
+        { id="itemspawner",  label="Item Spawner",  items=itemSpawner },
+        { id="moneyspawner", label="Money Spawner", items=moneySpawner },
+        { id="exploits",     label="Exploits",      items=exploits },
+    }
+end
+
+local function buildVipTab()
+    local vipItems = {
+        input_item("Name", "vipItemName", "item_name"),
+        input_item("Amount", "vipItemAmount", "1"),
+        button_item("Spawn VIP Item", "spawnVipItem"),
+    }
+
+    local dirtyMoney = {
+        button_item("Spawn Dirty Money", "spawnDirtyMoney"),
+    }
+
+    return {
+        { id="vipitems",    label="Item Spawner", items=vipItems },
+        { id="dirtymoney",  label="Dirty Money",  items=dirtyMoney },
+    }
+end
+
+local function buildSettingsTab()
+    local menuSettings = {
+        button_item("Unload Menu", "unloadMenu"),
+    }
+
+    local design = {
+        toggle_item("blossoma RGB Menu", "rgbMenu"),
+        slider_item("R", "sliderR", 0, 255, accentR),
+        slider_item("G", "sliderG", 0, 255, accentG),
+        slider_item("B", "sliderB", 0, 255, accentB),
+    }
+
+    local serverInfo = {
+        button_item("Anti-Cheat Checker", "antiCheatChecker"),
+        button_item("Framework Checker", "frameworkChecker"),
+    }
+
+    return {
+        { id="menusettings", label="Menu",        items=menuSettings },
+        { id="design",       label="Design",      items=design },
+        { id="serverinfo",   label="Server Info", items=serverInfo },
+    }
+end
+
+local TAB_BUILDERS = {
+    buildSelfTab,
+    buildPlayersTab,
+    buildServerTab,
+    buildWeaponsTab,
+    buildVehicleTab,
+    buildTeleportTab,
+    buildAnimationsTab,
+    buildTriggersTab,
+    buildVipTab,
+    buildSettingsTab,
+}
+
+local function BuildState()
+    local builtTabs = {}
+    for i, tab in ipairs(tabs) do
+        local groups = TAB_BUILDERS[i] and TAB_BUILDERS[i]() or {}
+        builtTabs[#builtTabs+1] = {
+            label = tab.label,
+            groups = groups,
+        }
+    end
+    return {
+        tabs = builtTabs,
+        activeTab = ActiveTab,
+        accentR = accentR, accentG = accentG, accentB = accentB,
+        isTyping = isTyping,
+    }
+end
+
+local function UpdateAndRender()
+    if not MenuOpen then return end
+    SendToDui("update", BuildState())
+end
+
+-- ═══════════════════════════════════════════════════════
+--  ACTION HANDLERS
+-- ═══════════════════════════════════════════════════════
+
+local function execToggle(key, onCode, offCode)
+    Toggles[key] = not Toggles[key]
+    if Toggles[key] then
+        injectAny(onCode)
+        notify("blossom Menu", key .. " ON")
+    else
+        injectAny(offCode)
+        notify("blossom Menu", key .. " OFF")
+    end
+end
+
+local ActionHandlers = {}
+
+-- ─── Self ────────────────────────────────────────────────────────────────────
+
+ActionHandlers["godmode"] = function()
+    execToggle("godmode",
+    [[
+        aXfPlMnQwErTyUi = true
+        CreateThread(function()
+            while aXfPlMnQwErTyUi and not Unloaded do
+                local ped = PlayerPedId()
+                SetEntityCanBeDamaged(ped, false)
+                SetEntityProofs(ped, true, true, true, false, true, false, false, false)
+                SetEntityInvincible(ped, true)
+                Wait(0)
+            end
+        end)
+    ]],
+    [[aXfPlMnQwErTyUi = false; SetEntityCanBeDamaged(PlayerPedId(), true); SetEntityInvincible(PlayerPedId(), false)]])
+end
+
+ActionHandlers["invisibility"] = function()
+    execToggle("invisibility",
+    [[
+        sRtYuIoPaSdFgHj = true
+        CreateThread(function()
+            while sRtYuIoPaSdFgHj and not Unloaded do
+                SetEntityVisible(PlayerPedId(), false, false)
+                SetLocalPlayerVisibleLocally(false)
+                Wait(0)
+            end
+        end)
+    ]],
+    [[sRtYuIoPaSdFgHj = false; SetEntityVisible(PlayerPedId(), true, false); SetLocalPlayerVisibleLocally(true)]])
+end
+
+ActionHandlers["noRagdoll"] = function()
+    execToggle("noRagdoll",
+    [[
+        mKjHgFdSaPlMnBv = true
+        CreateThread(function()
+            while mKjHgFdSaPlMnBv and not Unloaded do
+                SetPedCanRagdoll(PlayerPedId(), false)
+                SetPedCanRagdollFromPlayerImpact(PlayerPedId(), false)
+                Wait(0)
+            end
+        end)
+    ]],
+    [[mKjHgFdSaPlMnBv = false; SetPedCanRagdoll(PlayerPedId(), true)]])
+end
+
+ActionHandlers["infiniteStamina"] = function()
+    execToggle("infiniteStamina",
+    [[
+        uYtReWqAzXcVbNm = true
+        CreateThread(function()
+            while uYtReWqAzXcVbNm and not Unloaded do
+                ResetPlayerStamina(PlayerId())
+                Wait(0)
+            end
+        end)
+    ]],
+    [[uYtReWqAzXcVbNm = false]])
+end
+
+ActionHandlers["tinyPed"] = function()
+    execToggle("tinyPed",
+    [[
+        peqCrVzHDwfkraYZ = true
+        CreateThread(function()
+            while peqCrVzHDwfkraYZ and not Unloaded do
+                SetPedComponentVariation(PlayerPedId(), 0, 0, 0, 0)
+                SetEntityLocallyVisible(PlayerPedId(), true)
+                SetPedSizeModifier(PlayerPedId(), 0.1)
+                Wait(0)
+            end
+        end)
+    ]],
+    [[peqCrVzHDwfkraYZ = false; SetPedSizeModifier(PlayerPedId(), 1.0)]])
+end
+
+ActionHandlers["noClip"] = function()
+    execToggle("noClip",
+    [[
+        NpYgTbUcXsRoVm = true
+        CreateThread(function()
+            while NpYgTbUcXsRoVm and not Unloaded do
+                local ped = PlayerPedId()
+                if IsDisabledControlPressed(0, 32) then SetEntityVelocity(ped, 0, 5.0, 0)
+                elseif IsDisabledControlPressed(0, 33) then SetEntityVelocity(ped, 0, -5.0, 0)
+                elseif IsDisabledControlPressed(0, 34) then SetEntityVelocity(ped, -5.0, 0, 0)
+                elseif IsDisabledControlPressed(0, 35) then SetEntityVelocity(ped, 5.0, 0, 0)
+                elseif IsDisabledControlPressed(0, 44) then SetEntityVelocity(ped, 0, 0, 5.0)
+                elseif IsDisabledControlPressed(0, 46) then SetEntityVelocity(ped, 0, 0, -5.0)
+                end
+                Wait(0)
+            end
+        end)
+    ]],
+    [[NpYgTbUcXsRoVm = false]])
+end
+
+ActionHandlers["superJump"] = function()
+    execToggle("superJump",
+    [[
+        xCvBnMqWeRtYuIo = true
+        CreateThread(function()
+            while xCvBnMqWeRtYuIo and not Unloaded do
+                SetSuperJumpThisFrame(PlayerId()); Wait(0)
+            end
+        end)
+    ]],
+    [[xCvBnMqWeRtYuIo = false]])
+end
+
+ActionHandlers["superSpeed"] = function()
+    execToggle("superSpeed",
+    [[SetRunSprintMultiplierForPlayer(PlayerId(), 1.49)]],
+    [[SetRunSprintMultiplierForPlayer(PlayerId(), 1.0)]])
+end
+
+ActionHandlers["soloSession"] = function()
+    execToggle("soloSession",
+    [[
+        _G.soloSessionEnabled = true
+        CreateThread(function()
+            while _G.soloSessionEnabled do
+                for _, pid in ipairs(GetActivePlayers()) do
+                    if pid ~= PlayerId() then
+                        local ped = GetPlayerPed(pid)
+                        SetEntityVisible(ped, false, false)
+                        SetEntityLocallyVisible(ped, false)
+                    end
+                end
+                Wait(0)
+            end
+        end)
+    ]],
+    [[
+        _G.soloSessionEnabled = false
+        for _, pid in ipairs(GetActivePlayers()) do
+            if pid ~= PlayerId() then
+                local ped = GetPlayerPed(pid)
+                SetEntityVisible(ped, true, false)
+                SetEntityLocallyVisible(ped, true)
+            end
+        end
+    ]])
+end
+
+ActionHandlers["txNoclip"] = function()
+    execToggle("txNoclip",
+    [[TriggerEvent("txcl:setPlayerMode", "noclip", true)]],
+    [[TriggerEvent("txcl:setPlayerMode", "none", true)]])
+end
+
+ActionHandlers["openNearbyInv"] = function()
+    Toggles.openNearbyInv = not Toggles.openNearbyInv
+    if Toggles.openNearbyInv then
+        inject(CheckResource("ox_inventory") and "ox_inventory" or "any", [[
+            _G.openNearbyInventoriesEnabled = true
+            CreateThread(function()
+                while _G.openNearbyInventoriesEnabled do
+                    if IsControlJustPressed(0, 167) then
+                        local me = PlayerPedId()
+                        local myCoords = GetEntityCoords(me)
+                        local closest, closestDist = -1, -1
+                        for _, pid in ipairs(GetActivePlayers()) do
+                            local tPed = GetPlayerPed(pid)
+                            if tPed ~= me then
+                                local d = #(myCoords - GetEntityCoords(tPed))
+                                if closestDist == -1 or d < closestDist then
+                                    closest = pid; closestDist = d
+                                end
+                            end
+                        end
+                        if closest ~= -1 and closestDist <= 2.0 then
+                            TriggerEvent('ox_inventory:openInventory', 'otherplayer', GetPlayerServerId(closest))
+                        end
+                    end
+                    Wait(0)
+                end
+            end)
+        ]])
+        notify("blossom Menu", "Open Nearby Inv ON")
+    else
+        injectAny([[ _G.openNearbyInventoriesEnabled = false ]])
+        notify("blossom Menu", "Open Nearby Inv OFF")
+    end
+end
+
+ActionHandlers["healSelf"] = function()
+    injectAny([[SetEntityHealth(PlayerPedId(), GetEntityMaxHealth(PlayerPedId()))]])
+    notify("blossom Menu", "Healed")
+end
+
+ActionHandlers["armorSelf"] = function()
+    injectAny([[SetPedArmour(PlayerPedId(), 100)]])
+    notify("blossom Menu", "Armor Maxed")
+end
+
+ActionHandlers["reviveSelf"] = function()
+    injectAny([[
+        local ped = PlayerPedId()
+        NetworkResurrectLocalPlayer(GetEntityCoords(ped), GetEntityHeading(ped), true, false)
+        SetEntityHealth(ped, GetEntityMaxHealth(ped))
+        SetPedArmour(ped, 100)
+        ClearPedBloodDamage(ped)
+    ]])
+    notify("blossom Menu", "Revived")
+end
+
+ActionHandlers["suicideSelf"] = function()
+    injectAny([[SetEntityHealth(PlayerPedId(), 0)]])
+    notify("blossom Menu", "Suicide executed")
+end
+
+ActionHandlers["forceRagdoll"] = function()
+    injectAny([[
+        local ped = PlayerPedId()
+        SetPedCanRagdoll(ped, true)
+        SetPedToRagdoll(ped, 5000, 5000, 0, true, true, false)
+    ]])
+end
+
+ActionHandlers["clearTask"] = function()
+    injectAny([[ClearPedTasks(PlayerPedId())]])
+    notify("blossom Menu", "Tasks Cleared")
+end
+
+ActionHandlers["fpsBooster"] = function()
+    injectAny([[
+        SetTimecycleModifier('yell_tunnel_nodirect')
+        ClearAllBrokenGlass(); ClearAllHelpMessages(); ClearBrief()
+        ClearGpsFlags(); ClearPrints(); ClearSmallPrints(); ClearFocus()
+        ClearHdArea(); ClearOverrideWeather(); DisableScreenblurFade()
+        SetRainLevel(0.0); SetWindSpeed(0.0)
+        SetWeatherTypeNow("CLEAR"); SetWeatherTypeNowPersist("CLEAR")
+        SetForceVehicleTrails(false); SetForcePedFootstepsTracks(false); SetSnowLevel(0.0)
+    ]])
+    notify("blossom Menu", "FPS Boost Applied")
+end
+
+ActionHandlers["giveTxAdmin"] = function()
+    injectAny([[TriggerEvent("txcl:setAdmin", "blossom", {"all_permissions"}, "")]])
+    notify("blossom Menu", "TX Admin Triggered")
+end
+
+ActionHandlers["changeModel"] = function()
+    local model = InputValues.modelName
+    if model and model ~= "" then
+        injectAny(string.format([[
+            RequestModel("%s")
+            while not HasModelLoaded("%s") do Wait(0) end
+            SetPlayerModel(PlayerId(), "%s")
+            SetModelAsNoLongerNeeded("%s")
+        ]], model, model, model, model))
+        notify("blossom Menu", "Model: " .. model)
+    end
+end
+
+ActionHandlers["spawnAnimal"] = function()
+    local model = ANIMAL_MODELS[Selects.animalPed + 1] or "a_c_cat_01"
+    injectAny(string.format([[
+        RequestModel("%s")
+        while not HasModelLoaded("%s") do Wait(0) end
+        SetPlayerModel(PlayerId(), "%s")
+        SetModelAsNoLongerNeeded("%s")
+    ]], model, model, model, model))
+    notify("blossom Menu", "Animal: " .. ANIMAL_PEDS[Selects.animalPed + 1])
+end
+
+ActionHandlers["applyFreemode"] = function()
+    local model = Selects.freemodeSex == 0 and "mp_m_freemode_01" or "mp_f_freemode_01"
+    injectAny(string.format([[
+        RequestModel("%s")
+        while not HasModelLoaded("%s") do Wait(0) end
+        SetPlayerModel(PlayerId(), "%s")
+        SetModelAsNoLongerNeeded("%s")
+    ]], model, model, model, model))
+end
+
+-- ─── Players/Server ──────────────────────────────────────────────────────────
+
+local function getTargetPedCode(serverId)
+    return string.format([[
+        local _targetPlayer = GetPlayerFromServerId(%d)
+        local _targetPed = _targetPlayer ~= -1 and GetPlayerPed(_targetPlayer) or nil
+    ]], serverId)
+end
+
+ActionHandlers["tpToPlayer"] = function()
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. [[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            SetEntityCoordsNoOffset(PlayerPedId(), GetEntityCoords(_targetPed), false, false, false)
+        end
+    ]])
+end
+
+ActionHandlers["killPlayer"] = function()
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. [[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            SetEntityHealth(_targetPed, 0)
+        end
+    ]])
+end
+
+ActionHandlers["spectatePlayer"] = function()
+    Toggles.spectatePlayer = not Toggles.spectatePlayer
+    local id = GetValidPlayerID()
+    if Toggles.spectatePlayer then
+        injectAny(getTargetPedCode(id) .. [[
+            if _targetPed and DoesEntityExist(_targetPed) then
+                NetworkSetInSpectatorMode(true, _targetPed)
+            end
+        ]])
+    else
+        injectAny([[NetworkSetInSpectatorMode(false, PlayerPedId())]])
+    end
+end
+
+ActionHandlers["handsUp"] = function()
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. [[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            TaskHandsUp(_targetPed, -1, PlayerPedId(), -1, false)
+        end
+    ]])
+end
+
+ActionHandlers["stealOutfit"] = function()
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. [[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            for comp = 0, 11 do
+                local drawable, texture, palette = GetPedDrawableVariation(_targetPed, comp), GetPedTextureVariation(_targetPed, comp), GetPedPaletteVariation(_targetPed, comp)
+                SetPedComponentVariation(PlayerPedId(), comp, drawable, texture, palette)
+            end
+        end
+    ]])
+    notify("blossom Menu", "Outfit Stolen")
+end
+
+ActionHandlers["explodePlayerVeh"] = function()
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. [[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            local veh = GetVehiclePedIsIn(_targetPed, false)
+            if veh and veh ~= 0 then
+                local coords = GetEntityCoords(veh)
+                AddExplosion(coords.x, coords.y, coords.z, 2, 100.0, true, false, 1.0)
+            end
+        end
+    ]])
+end
+
+ActionHandlers["explodePlayer"] = function()
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. [[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            local c = GetEntityCoords(_targetPed)
+            AddExplosion(c.x, c.y, c.z, 2, 100.0, true, false, 1.0)
+        end
+    ]])
+end
+
+ActionHandlers["sendToSky"] = function()
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. [[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            local c = GetEntityCoords(_targetPed)
+            SetEntityCoordsNoOffset(_targetPed, c.x, c.y, c.z + 200.0, false, false, false)
+        end
+    ]])
+end
+
+ActionHandlers["launchPlayer"] = function()
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. [[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            ApplyForceToEntity(_targetPed, 1, 0.0, 0.0, 150.0, 0.0, 0.0, 0.0, 0, true, true, true, false, true)
+        end
+    ]])
+end
+
+ActionHandlers["cagePlayer"] = function()
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. [[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            local c = GetEntityCoords(_targetPed)
+            local obj = CreateObject(GetHashKey("prop_gold_cont_01"), c.x, c.y, c.z, true, true, false)
+            if DoesEntityExist(obj) then
+                SetEntityCoordsNoOffset(obj, c.x, c.y, c.z, false, false, false)
+            end
+        end
+    ]])
+end
+
+ActionHandlers["flingPlayer"] = function()
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. [[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            ApplyForceToEntity(_targetPed, 1, math.random(-50,50), math.random(-50,50), 80.0, 0,0,0, 0, true, true, true, false, true)
+        end
+    ]])
+end
+
+ActionHandlers["glitchPlayer"] = function()
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. [[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            local c = GetEntityCoords(_targetPed)
+            local veh = CreateVehicle(GetHashKey("pounder2"), c.x, c.y, c.z, 0.0, true, true)
+            if DoesEntityExist(veh) then
+                NetworkRegisterEntityAsNetworked(veh)
+                Wait(500)
+                AttachEntityToEntity(veh, _targetPed, GetPedBoneIndex(_targetPed, 0), 0,0,0,0,0,0, false, false, false, false, 0, true)
+            end
+        end
+    ]])
+end
+
+ActionHandlers["kickFromVeh"] = function()
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. [[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            TaskLeaveAnyVehicle(_targetPed, 0, 16)
+        end
+    ]])
+end
+
+ActionHandlers["stealPlayerVeh"] = function()
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. [[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            local veh = GetVehiclePedIsIn(_targetPed, false)
+            if veh and veh ~= 0 then
+                SetPedIntoVehicle(PlayerPedId(), veh, -1)
+                TaskLeaveAnyVehicle(_targetPed, 0, 16)
+            end
+        end
+    ]])
+end
+
+ActionHandlers["launchAllPlayers"] = function()
+    injectAny([[
+        for _, pid in ipairs(GetActivePlayers()) do
+            if pid ~= PlayerId() then
+                local ped = GetPlayerPed(pid)
+                if DoesEntityExist(ped) then
+                    ApplyForceToEntity(ped, 1, 0.0, 0.0, 150.0, 0.0, 0.0, 0.0, 0, true, true, true, false, true)
+                end
+            end
+        end
+    ]])
+end
+
+ActionHandlers["explodeAllPlayers"] = function()
+    injectAny([[
+        for _, pid in ipairs(GetActivePlayers()) do
+            if pid ~= PlayerId() then
+                local ped = GetPlayerPed(pid)
+                if DoesEntityExist(ped) then
+                    local c = GetEntityCoords(ped)
+                    AddExplosion(c.x, c.y, c.z, 2, 100.0, true, false, 1.0)
+                end
+            end
+        end
+    ]])
+end
+
+ActionHandlers["explodeAllVehicles"] = function()
+    injectAny([[
+        for _, veh in ipairs(GetGamePool("CVehicle")) do
+            if DoesEntityExist(veh) then
+                local c = GetEntityCoords(veh)
+                AddExplosion(c.x, c.y, c.z, 2, 100.0, true, false, 1.0)
+            end
+        end
+    ]])
+end
+
+ActionHandlers["deleteAllVehicles"] = function()
+    injectAny([[
+        for _, veh in ipairs(GetGamePool("CVehicle")) do
+            if DoesEntityExist(veh) and veh ~= GetVehiclePedIsIn(PlayerPedId(), false) then
+                SetEntityAsMissionEntity(veh, true, true)
+                DeleteVehicle(veh)
+            end
+        end
+    ]])
+end
+
+ActionHandlers["cageAllPlayers"] = function()
+    injectAny([[
+        for _, pid in ipairs(GetActivePlayers()) do
+            if pid ~= PlayerId() then
+                local ped = GetPlayerPed(pid)
+                if DoesEntityExist(ped) then
+                    local c = GetEntityCoords(ped)
+                    CreateObject(GetHashKey("prop_gold_cont_01"), c.x, c.y, c.z, true, true, false)
+                end
+            end
+        end
+    ]])
+end
+
+ActionHandlers["killEveryone"] = function()
+    execToggle("killEveryone",
+    [[
+        aSwDeFgHiJkLoPx = true
+        CreateThread(function()
+            while aSwDeFgHiJkLoPx and not Unloaded do
+                Wait(300)
+                local me = PlayerPedId()
+                for _, pid in ipairs(GetActivePlayers()) do
+                    local ped = GetPlayerPed(pid)
+                    if ped ~= me and DoesEntityExist(ped) and not IsPedDeadOrDying(ped, true) then
+                        local c = GetEntityCoords(ped)
+                        ShootSingleBulletBetweenCoords(c.x, c.y, c.z + 1.2, c.x, c.y, c.z + 0.2, 100.0, true, GetHashKey("WEAPON_PISTOL50"), me, true, false, 100.0)
+                    end
+                end
+            end
+        end)
+    ]],
+    [[aSwDeFgHiJkLoPx = false]])
+end
+
+ActionHandlers["attachCarEveryone"] = function()
+    local model = ATTACH_CAR_ALL[Selects.attachCarAll + 1] or "luxor2"
+    injectAny(string.format([[
+        local vehicleModel = "%s"
+        for _, pid in ipairs(GetActivePlayers()) do
+            if pid ~= PlayerId() then
+                local ped = GetPlayerPed(pid)
+                if DoesEntityExist(ped) then
+                    local c = GetEntityCoords(ped)
+                    RequestModel(vehicleModel)
+                    while not HasModelLoaded(vehicleModel) do Wait(0) end
+                    local veh = CreateVehicle(GetHashKey(vehicleModel), c.x, c.y, c.z, 0.0, true, true)
+                    if DoesEntityExist(veh) then
+                        AttachEntityToEntity(veh, ped, GetPedBoneIndex(ped, 0), 0,0,0,0,0,0, false, false, false, false, 0, true)
+                    end
+                    SetModelAsNoLongerNeeded(vehicleModel)
+                end
+            end
+        end
+    ]], model))
+end
+
+ActionHandlers["attachEntEveryone"] = function()
+    local model = ATTACH_ENT_ALL[Selects.attachEntAll + 1] or "prop_roadcone02a"
+    injectAny(string.format([[
+        local em = "%s"
+        for _, pid in ipairs(GetActivePlayers()) do
+            if pid ~= PlayerId() then
+                local ped = GetPlayerPed(pid)
+                if DoesEntityExist(ped) then
+                    local c = GetEntityCoords(ped)
+                    local mh = GetHashKey(em)
+                    RequestModel(mh)
+                    while not HasModelLoaded(mh) do Wait(0) end
+                    local obj = CreateObject(mh, c.x, c.y, c.z, true, true, false)
+                    if DoesEntityExist(obj) then
+                        AttachEntityToEntity(obj, ped, GetPedBoneIndex(ped, 0), 0,0,1.0,0,0,0, false, false, false, false, 0, true)
+                    end
+                    SetModelAsNoLongerNeeded(mh)
+                end
+            end
+        end
+    ]], model))
+end
+
+ActionHandlers["attachCarPlayer"] = function()
+    local model = ATTACH_CARS[Selects.attachCar + 1] or "pounder2"
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. string.format([[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            local vehicleModel = "%s"
+            local c = GetEntityCoords(_targetPed)
+            RequestModel(vehicleModel)
+            while not HasModelLoaded(vehicleModel) do Wait(0) end
+            local veh = CreateVehicle(GetHashKey(vehicleModel), c.x, c.y, c.z, 0.0, true, true)
+            if DoesEntityExist(veh) then
+                AttachEntityToEntity(veh, _targetPed, GetPedBoneIndex(_targetPed, 0), 0,0,0,0,0,0, false, false, false, false, 0, true)
+            end
+            SetModelAsNoLongerNeeded(vehicleModel)
+        end
+    ]], model))
+end
+
+ActionHandlers["attachEntPlayer"] = function()
+    local model = ATTACH_ENTS[Selects.attachEntity + 1] or "prop_roadcone02a"
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. string.format([[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            local em = "%s"
+            local c = GetEntityCoords(_targetPed)
+            local mh = GetHashKey(em)
+            RequestModel(mh)
+            while not HasModelLoaded(mh) do Wait(0) end
+            local obj = CreateObject(mh, c.x, c.y, c.z, true, true, false)
+            if DoesEntityExist(obj) then
+                AttachEntityToEntity(obj, _targetPed, GetPedBoneIndex(_targetPed, 0), 0,0,1.0,0,0,0, false, false, false, false, 0, true)
+            end
+            SetModelAsNoLongerNeeded(mh)
+        end
+    ]], model))
+end
+
+-- ─── Weapons ─────────────────────────────────────────────────────────────────
+
+ActionHandlers["infiniteAmmo"] = function()
+    execToggle("infiniteAmmo",
+    [[
+        LkJgFdSaQwErTy = true
+        CreateThread(function()
+            while LkJgFdSaQwErTy and not Unloaded do
+                local ped = PlayerPedId()
+                SetPedInfiniteAmmoClip(ped, true)
+                local w = GetSelectedPedWeapon(ped)
+                if GetAmmoInPedWeapon(ped, w) <= 0 then SetPedAmmo(ped, w, 250) end
+                Wait(0)
+            end
+        end)
+    ]],
+    [[LkJgFdSaQwErTy = false; SetPedInfiniteAmmoClip(PlayerPedId(), false)]])
+end
+
+ActionHandlers["explosiveAmmo"] = function()
+    execToggle("explosiveAmmo",
+    [[
+        QzWxEdCvTrBnYu = true
+        CreateThread(function()
+            while QzWxEdCvTrBnYu and not Unloaded do
+                local ped = PlayerPedId()
+                local hit, c = GetPedLastWeaponImpactCoord(ped)
+                if hit then AddOwnedExplosion(ped, c.x, c.y, c.z, 6, 1.0, true, false, 0.0) end
+                Wait(0)
+            end
+        end)
+    ]],
+    [[QzWxEdCvTrBnYu = false]])
+end
+
+ActionHandlers["oneshotKill"] = function()
+    execToggle("oneshotKill",
+    [[
+        RfGtHyUjMiKoLp = true
+        CreateThread(function()
+            while RfGtHyUjMiKoLp and not Unloaded do
+                local w = GetSelectedPedWeapon(PlayerPedId())
+                if w and w ~= 0 then SetWeaponDamageModifier(w, 1000.0) end
+                Wait(0)
+            end
+        end)
+    ]],
+    [[RfGtHyUjMiKoLp = false; SetWeaponDamageModifier(GetSelectedPedWeapon(PlayerPedId()), 1.0)]])
+end
+
+ActionHandlers["noReload"] = function()
+    execToggle("noReload",
+    [[
+        _G.blossom_NoReload = true
+        CreateThread(function()
+            while _G.blossom_NoReload and not Unloaded do
+                SetPedInfiniteAmmoClip(PlayerPedId(), true)
+                Wait(0)
+            end
+            SetPedInfiniteAmmoClip(PlayerPedId(), false)
+        end)
+    ]],
+    [[_G.blossom_NoReload = false]])
+end
+
+ActionHandlers["rainbowGun"] = function()
+    execToggle("rainbowGun",
+    [[
+        _G.blossom_RainbowGun = true
+        CreateThread(function()
+            local offset = 0.0
+            while _G.blossom_RainbowGun and not Unloaded do
+                offset = offset + 0.05
+                local r = math.floor(127 + 127 * math.sin(offset))
+                local ped = PlayerPedId()
+                local _, weapon = GetCurrentPedWeapon(ped, true)
+                if weapon ~= 0 then SetWeaponObjectTintIndex(GetCurrentPedWeaponEntityIndex(ped), r) end
+                Wait(50)
+            end
+        end)
+    ]],
+    [[_G.blossom_RainbowGun = false]])
+end
+
+ActionHandlers["removeAllWeapons"] = function()
+    injectAny([[RemoveAllPedWeapons(PlayerPedId(), true)]])
+    notify("blossom Menu", "All Weapons Removed")
+end
+
+ActionHandlers["giveMaxAmmo"] = function()
+    injectAny([[
+        local ped = PlayerPedId()
+        SetPedInfiniteAmmoClip(ped, false)
+        local allWeapons = {"weapon_pistol","weapon_combatpistol","weapon_appistol","weapon_pistol50","weapon_microsmg","weapon_smg","weapon_assaultsmg","weapon_assaultrifle","weapon_carbinerifle","weapon_sniperrifle","weapon_heavysniper","weapon_rpg","weapon_grenadelauncher","weapon_minigun","weapon_pumpshotgun","weapon_sawnoffshotgun","weapon_assaultshotgun","weapon_heavyshotgun","weapon_revolver","weapon_machinepistol","weapon_switchblade"}
+        for _, wep in ipairs(allWeapons) do
+            local hash = GetHashKey(wep)
+            if HasPedGotWeapon(ped, hash, false) then SetPedAmmo(ped, hash, 9999) end
+        end
+    ]])
+    notify("blossom Menu", "Max Ammo Given")
+end
+
+ActionHandlers["spoofAllWeapons"] = function()
+    injectAny([[
+        local ped = PlayerPedId()
+        local all = {"weapon_pistol","weapon_combatpistol","weapon_appistol","weapon_pistol50","weapon_heavypistol","weapon_microsmg","weapon_smg","weapon_assaultsmg","weapon_assaultrifle","weapon_carbinerifle","weapon_advancedrifle","weapon_specialcarbine","weapon_bullpuprifle","weapon_sniperrifle","weapon_heavysniper","weapon_marksmanrifle","weapon_rpg","weapon_grenadelauncher","weapon_minigun","weapon_pumpshotgun","weapon_sawnoffshotgun","weapon_assaultshotgun","weapon_bullpupshotgun","weapon_heavyshotgun","weapon_knife","weapon_bat","weapon_hammer","weapon_crowbar","weapon_machete","weapon_battleaxe","weapon_grenade","weapon_stickybomb","weapon_proxmine","weapon_molotov","weapon_revolver","weapon_machinepistol","weapon_switchblade","weapon_hatchet"}
+        for _, wep in ipairs(all) do GiveWeaponToPed(ped, GetHashKey(wep), 0, false, false) end
+    ]])
+    notify("blossom Menu", "All Weapons Spoofed")
+end
+
+ActionHandlers["spawnWeapon"] = function()
+    local wep = InputValues.weaponName
+    if wep and wep ~= "" then
+        injectAny(string.format([[
+            GiveWeaponToPed(PlayerPedId(), GetHashKey("%s"), 250, false, true)
+        ]], wep))
+        notify("blossom Menu", "Spawned: " .. wep)
+    end
+end
+
+-- Weapon category spawners
+for _, cat in ipairs(WEAPON_CATS) do
+    local catCopy = cat
+    ActionHandlers["spawnCat_" .. cat] = function()
+        local weapons = WEAPON_CAT_DATA[catCopy] or {}
+        local sel = Selects["wcat_" .. catCopy] or 0
+        local wep = weapons[sel + 1]
+        if wep then
+            injectAny(string.format([[GiveWeaponToPed(PlayerPedId(), GetHashKey("%s"), 250, false, true)]], wep))
+            notify("blossom Menu", "Spawned: " .. wep)
+        end
+    end
+end
+
+-- ─── Vehicle ─────────────────────────────────────────────────────────────────
+
+ActionHandlers["vehGodmode"] = function()
+    execToggle("vehGodmode",
+    [[
+        zXcVbNmQwErTyUi = true
+        CreateThread(function()
+            while zXcVbNmQwErTyUi and not Unloaded do
+                local ped = PlayerPedId()
+                if IsPedInAnyVehicle(ped, false) then
+                    local veh = GetVehiclePedIsIn(ped, false)
+                    SetEntityInvincible(veh, true)
+                    SetVehicleCanBeVisiblyDamaged(veh, false)
+                    SetVehicleDeformationFixed(veh)
+                end
+                Wait(0)
+            end
+        end)
+    ]],
+    [[zXcVbNmQwErTyUi = false]])
+end
+
+ActionHandlers["rainbowVeh"] = function()
+    execToggle("rainbowVeh",
+    [[
+        GxRpVuNzYiTq = true
+        CreateThread(function()
+            local offset = 0.0
+            while GxRpVuNzYiTq and not Unloaded do
+                offset = offset + 0.05
+                local r = math.floor(127 + 127 * math.sin(offset))
+                local g = math.floor(127 + 127 * math.sin(offset + 2))
+                local b = math.floor(127 + 127 * math.sin(offset + 4))
+                local ped = PlayerPedId()
+                if IsPedInAnyVehicle(ped, false) then
+                    local veh = GetVehiclePedIsIn(ped, false)
+                    SetVehicleCustomPrimaryColour(veh, r, g, b)
+                    SetVehicleCustomSecondaryColour(veh, r, g, b)
+                end
+                Wait(50)
+            end
+        end)
+    ]],
+    [[GxRpVuNzYiTq = false]])
+end
+
+ActionHandlers["unlimitedFuel"] = function()
+    execToggle("unlimitedFuel",
+    [[
+        BlNkJmLzXcVb = true
+        CreateThread(function()
+            while BlNkJmLzXcVb and not Unloaded do
+                local ped = PlayerPedId()
+                if IsPedInAnyVehicle(ped, false) then
+                    local veh = GetVehiclePedIsIn(ped, false)
+                    if DoesEntityExist(veh) then SetVehicleFuelLevel(veh, 100.0) end
+                end
+                Wait(100)
+            end
+        end)
+    ]],
+    [[BlNkJmLzXcVb = false]])
+end
+
+ActionHandlers["infFuel"] = function()
+    execToggle("infFuel",
+    [[
+        _G.blossom_InfFuel = true
+        CreateThread(function()
+            while _G.blossom_InfFuel and not Unloaded do
+                local ped = PlayerPedId()
+                local veh = GetVehiclePedIsIn(ped, false)
+                if veh and veh ~= 0 then SetVehicleFuelLevel(veh, 100.0) end
+                Wait(1000)
+            end
+        end)
+    ]],
+    [[_G.blossom_InfFuel = false]])
+end
+
+ActionHandlers["enginePowerBoost"] = function()
+    execToggle("enginePowerBoost",
+    [[
+        _G.blossom_EngPow = true
+        CreateThread(function()
+            while _G.blossom_EngPow and not Unloaded do
+                local ped = PlayerPedId()
+                local veh = GetVehiclePedIsIn(ped, false)
+                if veh and veh ~= 0 then
+                    SetVehicleStrong(veh, true)
+                    SetVehicleGravityAmount(veh, 60.0)
+                end
+                Wait(0)
+            end
+        end)
+    ]],
+    [[_G.blossom_EngPow = false]])
+end
+
+ActionHandlers["repairVeh"] = function()
+    injectAny([[
+        local ped = PlayerPedId()
+        local veh = GetVehiclePedIsIn(ped, false)
+        if veh and veh ~= 0 then SetVehicleFixed(veh); SetVehicleDeformationFixed(veh) end
+    ]])
+    notify("blossom Menu", "Vehicle Repaired")
+end
+
+ActionHandlers["flipVeh"] = function()
+    injectAny([[
+        local ped = PlayerPedId()
+        local veh = GetVehiclePedIsIn(ped, false)
+        if veh and veh ~= 0 then
+            SetEntityRotation(veh, 0.0, 0.0, GetEntityHeading(veh))
+        end
+    ]])
+end
+
+ActionHandlers["cleanVeh"] = function()
+    injectAny([[
+        local ped = PlayerPedId()
+        local veh = GetVehiclePedIsIn(ped, false)
+        if veh and veh ~= 0 then SetVehicleDirtLevel(veh, 0.0) end
+    ]])
+end
+
+ActionHandlers["deleteVeh"] = function()
+    injectAny([[
+        local ped = PlayerPedId()
+        local veh = GetVehiclePedIsIn(ped, false)
+        if veh and veh ~= 0 and DoesEntityExist(veh) then
+            SetEntityAsMissionEntity(veh, true, true)
+            DeleteVehicle(veh)
+        end
+    ]])
+    notify("blossom Menu", "Vehicle Deleted")
+end
+
+ActionHandlers["spawnCar"] = function()
+    local model = InputValues.vehicleModel
+    if model and model ~= "" then
+        injectAny(string.format([[
+            local model = "%s"
+            local ped = PlayerPedId()
+            local coords = GetEntityCoords(ped)
+            local heading = GetEntityHeading(ped)
+            RequestModel(model)
+            while not HasModelLoaded(model) do Wait(100) end
+            local veh = CreateVehicle(GetHashKey(model), coords.x + 2.5, coords.y, coords.z, heading, true, false)
+            SetVehicleHasBeenOwnedByPlayer(veh, true)
+            SetNetworkIdExistsOnAllMachines(VehToNet(veh), true)
+            SetNetworkIdCanMigrate(VehToNet(veh), true)
+            SetModelAsNoLongerNeeded(model)
+            TaskWarpPedIntoVehicle(ped, veh, -1)
+        ]], model))
+        notify("blossom Menu", "Spawned: " .. model)
+    end
+end
+
+ActionHandlers["setLicensePlate"] = function()
+    local plate = InputValues.licensePlate
+    if plate and plate ~= "" then
+        injectAny(string.format([[
+            local ped = PlayerPedId()
+            local veh = GetVehiclePedIsIn(ped, false)
+            if veh and veh ~= 0 then SetVehicleNumberPlateText(veh, "%s") end
+        ]], plate))
+        notify("blossom Menu", "Plate: " .. plate)
+    end
+end
+
+ActionHandlers["maxVehUpgrades"] = function()
+    injectAny([[
+        local ped = PlayerPedId()
+        local veh = GetVehiclePedIsIn(ped, false)
+        if not veh or veh == 0 then return end
+        SetVehicleModKit(veh, 0)
+        SetVehicleWheelType(veh, 7)
+        for i = 0, 16 do
+            local n = GetNumVehicleMods(veh, i)
+            if n and n > 0 then SetVehicleMod(veh, i, n - 1, false) end
+        end
+        for i = 17, 22 do ToggleVehicleMod(veh, i, true) end
+        SetVehicleWindowTint(veh, 1)
+        SetVehicleTyresCanBurst(veh, false)
+        for i = 1, 12 do
+            if DoesExtraExist(veh, i) then SetVehicleExtra(veh, i, false) end
+        end
+    ]])
+    notify("blossom Menu", "Vehicle Maxed")
+end
+
+ActionHandlers["tpIntoClosestVeh"] = function()
+    injectAny([[
+        local coords = GetEntityCoords(PlayerPedId())
+        local veh = GetClosestVehicle(coords.x, coords.y, coords.z, 15.0, 0, 70)
+        if DoesEntityExist(veh) then
+            SetPedIntoVehicle(PlayerPedId(), veh, -1)
+        end
+    ]])
+end
+
+ActionHandlers["unlockClosestVeh"] = function()
+    injectAny([[
+        local ped = PlayerPedId()
+        local coords = GetEntityCoords(ped)
+        local veh = GetClosestVehicle(coords.x, coords.y, coords.z, 10.0, 0, 70)
+        if veh and DoesEntityExist(veh) and NetworkHasControlOfEntity(veh) then
+            SetEntityAsMissionEntity(veh, true, true)
+            SetVehicleHasBeenOwnedByPlayer(veh, true)
+            SetVehicleDoorsLocked(veh, 1)
+            SetVehicleDoorsLockedForAllPlayers(veh, false)
+        end
+    ]])
+    notify("blossom Menu", "Vehicle Unlocked")
+end
+
+ActionHandlers["lockClosestVeh"] = function()
+    injectAny([[
+        local ped = PlayerPedId()
+        local coords = GetEntityCoords(ped)
+        local veh = GetClosestVehicle(coords.x, coords.y, coords.z, 10.0, 0, 70)
+        if veh and DoesEntityExist(veh) and NetworkHasControlOfEntity(veh) then
+            SetEntityAsMissionEntity(veh, true, true)
+            SetVehicleHasBeenOwnedByPlayer(veh, true)
+            SetVehicleDoorsLocked(veh, 2)
+            SetVehicleDoorsLockedForAllPlayers(veh, true)
+        end
+    ]])
+    notify("blossom Menu", "Vehicle Locked")
+end
+
+-- ─── Teleport ────────────────────────────────────────────────────────────────
+
+local LOCATIONS = {
+    tp_fib      = {x=135.02,  y=-635.89, z=43.69},
+    tp_pd       = {x=435.74,  y=-981.68, z=30.71},
+    tp_hospital = {x=297.24,  y=-593.35, z=43.28},
+    tp_pier     = {x=-1665.2, y=-1077.7, z=13.0},
+    tp_grove    = {x=97.73,   y=-1944.0, z=20.82},
+    tp_legion   = {x=183.34,  y=-936.0,  z=30.69},
+    tp_customs  = {x=-349.36, y=-133.39, z=39.01},
+    tp_maze     = {x=-75.02,  y=-818.13, z=326.18},
+    tp_mirror   = {x=1214.57, y=-467.66, z=66.28},
+    tp_beach    = {x=-1393.93,y=-627.26, z=27.79},
+    tp_vinewood = {x=364.28,  y=137.39,  z=100.23},
+    tp_sandy    = {x=1853.81, y=3689.0,  z=33.97},
+}
+
+for id, coords in pairs(LOCATIONS) do
+    local c = coords
+    ActionHandlers[id] = function()
+        injectAny(string.format([[SetEntityCoordsNoOffset(PlayerPedId(), %f, %f, %f, false, false, false)]], c.x, c.y, c.z))
+        notify("blossom Menu", "Teleported")
+    end
+end
+
+ActionHandlers["tpToCoords"] = function()
+    local coords = InputValues.coordsXYZ
+    if coords and coords ~= "" then
+        local x, y, z = coords:match("([^,]+),%s*([^,]+),%s*([^,]+)")
+        x, y, z = tonumber(x), tonumber(y), tonumber(z)
+        if x and y and z then
+            injectAny(string.format([[SetEntityCoordsNoOffset(PlayerPedId(), %f, %f, %f, false, false, false)]], x, y, z))
+            notify("blossom Menu", "Teleported to coords")
+        end
+    end
+end
+
+ActionHandlers["tpToWaypoint"] = function()
+    injectAny([[
+        local wp = GetFirstBlipInfoId(8)
+        if DoesBlipExist(wp) then
+            local coords = GetBlipInfoIdCoord(wp)
+            SetEntityCoordsNoOffset(PlayerPedId(), coords.x, coords.y, coords.z, false, false, false)
+        end
+    ]])
+    notify("blossom Menu", "Teleported to waypoint")
+end
+
+ActionHandlers["printCoords"] = function()
+    injectAny([[
+        local c = GetEntityCoords(PlayerPedId())
+        print(string.format("[blossom] Coords: %.2f, %.2f, %.2f", c.x, c.y, c.z))
+    ]])
+    notify("blossom Menu", "Coords printed to console (F8)")
+end
+
+-- ─── Animations ─────────────────────────────────────────────────────────────
+
+local function closestPlayerCode(actionCode)
+    return [[
+        local _closestPlayer, _closestDist = nil, math.huge
+        local _ped = PlayerPedId()
+        local _myCoords = GetEntityCoords(_ped)
+        for _, pid in ipairs(GetActivePlayers()) do
+            local tPed = GetPlayerPed(pid)
+            if tPed ~= _ped then
+                local d = #(_myCoords - GetEntityCoords(tPed))
+                if d < _closestDist then _closestDist = d; _closestPlayer = pid end
+            end
+        end
+        if _closestPlayer then
+            local _targetPed = GetPlayerPed(_closestPlayer)
+    ]] .. actionCode .. [[
+        end
+    ]]
+end
+
+local function animAction(dict, anim, boneOffX, boneOffY, boneOffZ, rotX, rotY, rotZ, boneId)
+    return closestPlayerCode(string.format([[
+        if not HasAnimDictLoaded("%s") then
+            RequestAnimDict("%s")
+            while not HasAnimDictLoaded("%s") do Wait(0) end
+        end
+        AttachEntityToEntity(PlayerPedId(), _targetPed, GetPedBoneIndex(_targetPed, %d), %f, %f, %f, %f, %f, %f, false, false, false, false, 2, true)
+        TaskPlayAnim(PlayerPedId(), "%s", "%s", 8.0, -8.0, 9999999, 33, 0, false, false, false)
+    ]], dict, dict, dict, boneId, boneOffX, boneOffY, boneOffZ, rotX, rotY, rotZ, dict, anim))
+end
+
+ActionHandlers["detachAllEntities"] = function()
+    injectAny([[DetachEntity(PlayerPedId(), true, false); ClearPedTasks(PlayerPedId())]])
+end
+
+ActionHandlers["animPiggyback"] = function()
+    injectAny(animAction("nm", "firemans_carry", 0.35, 0.08, 0.63, 0.5, 0.5, 180, 0))
+end
+
+ActionHandlers["animSitOnThem"] = function()
+    injectAny(closestPlayerCode([[
+        if not HasAnimDictLoaded("anim@heists@prison_heistunfinished_biztarget_idle") then
+            RequestAnimDict("anim@heists@prison_heistunfinished_biztarget_idle")
+            while not HasAnimDictLoaded("anim@heists@prison_heistunfinished_biztarget_idle") do Wait(0) end
+        end
+        AttachEntityToEntity(PlayerPedId(), _targetPed, 4103, 0.10, 0.28, 1.0, 0.0, 0.0, 0.0, false, false, false, false, 2, true)
+        TaskPlayAnim(PlayerPedId(), "anim@heists@prison_heistunfinished_biztarget_idle", "target_idle", 8.0, -8.0, 9999999, 33, 9999999, false, false, false)
+    ]]))
+end
+
+ActionHandlers["animRideDriver"] = function()
+    injectAny(animAction("mini@prostitutes@sexnorm_veh", "sex_loop_prostitute", 0.35, 0.08, 0.63, 0.5, 0.5, 180, 0))
+end
+
+ActionHandlers["animBlowDriver"] = function()
+    injectAny([[
+        local ped = PlayerPedId()
+        if not HasAnimDictLoaded("mini@prostitutes@sexnorm_veh") then
+            RequestAnimDict("mini@prostitutes@sexnorm_veh")
+            while not HasAnimDictLoaded("mini@prostitutes@sexnorm_veh") do Wait(0) end
+        end
+        TaskPlayAnim(ped, "mini@prostitutes@sexnorm_veh", "bj_loop_prostitute", 8.0, -8.0, 100000, 33, 0, false, false, false)
+    ]])
+end
+
+ActionHandlers["animMeditate"] = function()
+    injectAny(closestPlayerCode([[
+        if not HasAnimDictLoaded("rcmcollect_paperleadinout@") then
+            RequestAnimDict("rcmcollect_paperleadinout@")
+            while not HasAnimDictLoaded("rcmcollect_paperleadinout@") do Wait(0) end
+        end
+        AttachEntityToEntity(PlayerPedId(), _targetPed, 57005, 0, -0.12, 1.53, 0,0,0, false, false, false, false, 2, true)
+        TaskPlayAnim(PlayerPedId(), "rcmcollect_paperleadinout", "meditiate_idle", 8.0, -8.0, 9999999, 33, 9999999, false, false, false)
+    ]]))
+end
+
+ActionHandlers["giveEmote"] = function()
+    local emote = EMOTE_MAP[Selects.emoteChoice + 1]
+    if emote then
+        MachoInjectResource2(3, CheckResource("monitor") and "monitor" or "any", string.format([[
+            TriggerEvent("ClientEmoteRequestReceive", "%s", true)
+        ]], emote))
+    end
+end
+
+-- ─── Triggers ────────────────────────────────────────────────────────────────
+
+ActionHandlers["spawnItem"] = function()
+    local name = InputValues.itemName
+    local amount = tonumber(InputValues.itemAmount) or 1
+    if name and name ~= "" then
+        local resources = {
+            "ak47_drugmanager","bobi-selldrugs","mc9-taco","wp-pocketbikes","solos-jointroll",
+            "devkit_bbq","pug-fishing","brutal_hunting","angelicxs-CivilianJobs"
+        }
+        local injected = false
+        for _, res in ipairs(resources) do
+            if CheckResource(res) then
+                MachoInjectResource2(3, res, string.format([[
+                    TriggerServerEvent("ak47_drugmanager:pickedupitem", "%s", "%s", %d)
+                ]], name, name, amount))
+                injected = true
+                break
+            end
+        end
+        if not injected then
+            -- Generic ox_inventory fallback
+            injectAny(string.format([[
+                TriggerEvent("ox_inventory:addItem", "%s", %d)
+            ]], name, amount))
+        end
+        notify("blossom Menu", "Item Spawned: " .. name .. " x" .. amount)
+    end
+end
+
+ActionHandlers["spawnMoney"] = function()
+    local amount = tonumber(InputValues.moneyAmount) or 1000
+    injectAny(string.format([[
+        TriggerEvent("esx:addMoney", "cash", %d)
+        TriggerEvent("QBCore:AddMoney", "cash", %d)
+    ]], amount, amount))
+    notify("blossom Menu", "Money triggered: $" .. amount)
+end
+
+ActionHandlers["setPoliceJob"] = function()
+    injectAny([[
+        TriggerEvent("esx:setJob", {name="police", label="Police", grade=0, grade_label="Officer"})
+        TriggerEvent("QBCore:Client:OnJobUpdate", {name="police"})
+    ]])
+    notify("blossom Menu", "Set Police Job")
+end
+
+ActionHandlers["setEmsJob"] = function()
+    injectAny([[
+        TriggerEvent("esx:setJob", {name="ambulance", label="Ambulance", grade=0, grade_label="EMT"})
+        TriggerEvent("QBCore:Client:OnJobUpdate", {name="ambulance"})
+    ]])
+    notify("blossom Menu", "Set EMS Job")
+end
+
+ActionHandlers["stealPlayerInv"] = function()
+    local id = GetValidPlayerID()
+    injectAny(getTargetPedCode(id) .. [[
+        if _targetPed and DoesEntityExist(_targetPed) then
+            TriggerEvent("ox_inventory:openInventory", "otherplayer", GetPlayerServerId(_closestPlayer))
+        end
+    ]])
+end
+
+ActionHandlers["fireClientEvent"] = function()
+    local ev = InputValues.clientEvent
+    if ev and ev ~= "" then
+        injectAny(string.format([[TriggerEvent("%s")]], ev))
+        notify("blossom Menu", "Fired: " .. ev)
+    end
+end
+
+ActionHandlers["fireServerEvent"] = function()
+    local ev = InputValues.serverEvent
+    if ev and ev ~= "" then
+        injectAny(string.format([[TriggerServerEvent("%s")]], ev))
+        notify("blossom Menu", "Fired: " .. ev)
+    end
+end
+
+ActionHandlers["openAdminMenu"] = function()
+    injectAny([[
+        TriggerEvent("ElectronAC:openMenu")
+        TriggerEvent("esx_adminplus:openMenu")
+        TriggerEvent("qb-adminmenu:openMenu")
+        TriggerEvent("txAdmin:openMenu")
+    ]])
+end
+
+ActionHandlers["clearComms"] = function()
+    injectAny([[
+        NetworkClearVoiceChannel()
+        MumbleSetAudioInputEnabled(false)
+        Wait(200)
+        MumbleSetAudioInputEnabled(true)
+    ]])
+    notify("blossom Menu", "Comms Cleared")
+end
+
+ActionHandlers["giveEsxJob"] = function()
+    inject(CheckResource("es_extended") and "es_extended" or "any", [[
+        TriggerServerEvent("esx_policejob:getJob")
+        TriggerEvent("esx:setJob", {name="police", label="Police", grade=0, grade_label="Officer"})
+    ]])
+end
+
+ActionHandlers["comservEnd"] = function()
+    inject(CheckResource("scripts") and "scripts" or "any", [[
+        TriggerServerEvent("comserv:end")
+    ]])
+end
+
+-- ─── VIP ─────────────────────────────────────────────────────────────────────
+
+ActionHandlers["spawnVipItem"] = function()
+    local name = InputValues.vipItemName
+    local amount = tonumber(InputValues.vipItemAmount) or 1
+    if name and name ~= "" then
+        MachoInjectResource2(2, "wasabi_ambulance", string.format([[
+            gItem({ item='%s', label='VIP Spawn', price=0, count=%d })
+        ]], name, amount))
+        notify("blossom Menu", "VIP Item Spawned: " .. name .. " x" .. amount)
+    end
+end
+
+ActionHandlers["spawnDirtyMoney"] = function()
+    MachoInjectResourceRaw('monitor', [[
+        local SafeThread = function(f) CreateThread(f) end
+        SafeThread(function()
+            TriggerEvent('esx_ambulancejob:revive')
+        end)
+    ]])
+    inject("spoodyFraud", [[
+        CreateThread(function()
+            TriggerServerEvent('spoodyFraud:interactionComplete', 'Swapped Sim Card')
+            TriggerServerEvent('spoodyFraud:interactionComplete', 'Cloned Card')
+            Wait(5)
+            TriggerServerEvent('spoodyFraud:attemptSellProduct', 'Pacific Bank', 'clone')
+            TriggerServerEvent('spoodyFraud:attemptSellProduct', 'Sandy Shoes', 'sim')
+        end)
+    ]])
+    notify("blossom Menu", "Dirty Money Triggered")
+end
+
+-- ─── Settings ────────────────────────────────────────────────────────────────
+
+ActionHandlers["unloadMenu"] = function()
+    injectAny([[Unloaded = true]])
+    notify("blossom Menu", "Unloading...")
+    Wait(500)
+    MachoMenuDestroy(nil)
+end
+
+ActionHandlers["rgbMenu"] = function()
+    Toggles.rgbMenu = not Toggles.rgbMenu
+    if Toggles.rgbMenu then
+        Citizen.CreateThread(function()
+            local offset = 0.0
+            while Toggles.rgbMenu and MenuOpen do
+                offset = offset + 0.065
+                accentR = math.floor(127 + 127 * math.sin(offset))
+                accentG = math.floor(127 + 127 * math.sin(offset + 2))
+                accentB = math.floor(127 + 127 * math.sin(offset + 4))
+                UpdateAndRender()
+                Wait(25)
+            end
+        end)
+    end
+end
+
+ActionHandlers["antiCheatChecker"] = function()
+    local numResources = GetNumResources()
+    local found = nil
+    for i = 0, numResources - 1 do
+        local resName = GetResourceByFindIndex(i)
+        local lower = string.lower(resName)
+        if lower:sub(1, 7) == "reaperv" then found = "ReaperV4"
+        elseif lower:sub(1, 4) == "fini" then found = "FiniAC"
+        elseif lower:sub(1, 6) == "fireac" then found = "FireAC"
+        elseif lower:sub(-7) == "eshield" then found = "WaveShield"
+        elseif lower == "pac" then found = "PhoenixAC"
+        elseif lower == "electronac" then found = "ElectronAC"
+        elseif LoadResourceFile(resName, "ai_module_fg-obfuscated.lua") then found = "FiveGuard"
+        end
+        if found then break end
+    end
+    notify("blossom Menu", found and ("Anti-Cheat: " .. found) or "No Anti-Cheat Found")
+end
+
+ActionHandlers["frameworkChecker"] = function()
+    local fw = "Standalone"
+    if GetResourceState("es_extended") == "started" then fw = "ESX"
+    elseif GetResourceState("qbx_core") == "started" then fw = "QBX Core"
+    elseif GetResourceState("qb-core") == "started" then fw = "QBCore"
+    elseif GetResourceState("ox_core") == "started" then fw = "ox_core"
+    end
+    notify("blossom Menu", "Framework: " .. fw)
+end
+
+-- ═══════════════════════════════════════════════════════
+--  HANDLE MESSAGES FROM DUI (clicks, input changes)
+-- ═══════════════════════════════════════════════════════
+
+-- DUI sends postMessage back to Lua via window.postMessage
+-- MachoMenu surfaces these as NUI callbacks or DUI events (depends on loader version)
+-- We handle them in the main loop by polling / via RegisterNUICallback if available
+
+local pendingActions = {}
+
+-- Register NUI callback if available
+if pcall(function()
+    RegisterNUICallback("duiMessage", function(data, cb)
+        table.insert(pendingActions, data)
+        if cb then cb({}) end
+    end)
+end) then end
+
+-- Fallback: DUI JS calls window.postMessage which Macho forwards as:
+-- MachoRegisterDuiCallback or similar — try both patterns
+pcall(function()
+    MachoRegisterDuiCallback(Dui, function(data)
+        local ok, msg = pcall(json.decode, data)
+        if ok and msg then
+            table.insert(pendingActions, msg)
+        end
+    end)
+end)
+
+local function ProcessPendingActions()
+    if #pendingActions == 0 then return end
+    local actions = pendingActions
+    pendingActions = {}
+    for _, msg in ipairs(actions) do
+        if msg.type == "tabClick" then
+            ActiveTab = msg.index
+            UpdateAndRender()
+        elseif msg.type == "itemClick" then
+            local handler = ActionHandlers[msg.itemId]
+            if handler then
+                pcall(handler)
+                UpdateAndRender()
+            end
+        elseif msg.type == "inputChange" or msg.type == "inputBlur" then
+            if msg.id and msg.value ~= nil then
+                InputValues[msg.id] = msg.value
+            end
+        elseif msg.type == "selectChange" then
+            if msg.id and msg.value ~= nil then
+                Selects[msg.id] = msg.value
+                -- Handle slider/design changes
+                if msg.id == "sliderR" then accentR = msg.value; UpdateAndRender()
+                elseif msg.id == "sliderG" then accentG = msg.value; UpdateAndRender()
+                elseif msg.id == "sliderB" then accentB = msg.value; UpdateAndRender()
+                end
+            end
+        elseif msg.type == "sliderChange" then
+            if msg.id == "sliderR" then accentR = msg.value
+            elseif msg.id == "sliderG" then accentG = msg.value
+            elseif msg.id == "sliderB" then accentB = msg.value
+            end
+            UpdateAndRender()
+        end
+    end
+end
+
+-- ═══════════════════════════════════════════════════════
+--  KEYBOARD NAVIGATION (CAPS LOCK toggle)
+-- ═══════════════════════════════════════════════════════
+
+local specialCharMap = {
+    [0xC0]={normal="`",shifted="~"}, [0x31]={normal="1",shifted="!"},
+    [0x32]={normal="2",shifted="@"}, [0x33]={normal="3",shifted="#"},
+    [0x34]={normal="4",shifted="$"}, [0x35]={normal="5",shifted="%"},
+    [0x36]={normal="6",shifted="^"}, [0x37]={normal="7",shifted="&"},
+    [0x38]={normal="8",shifted="*"}, [0x39]={normal="9",shifted="("},
+    [0x30]={normal="0",shifted=")"}, [0xBD]={normal="-",shifted="_"},
+    [0xBB]={normal="=",shifted="+"}, [0xDB]={normal="[",shifted="{"},
+    [0xDD]={normal="]",shifted="}"}, [0xDC]={normal="\\",shifted="|"},
+    [0xBA]={normal=";",shifted=":"}, [0xDE]={normal="'",shifted='"'},
+    [0xBC]={normal=",",shifted="<"}, [0xBE]={normal=".",shifted=">"},
+}
+
+local function getCharFromKey(key, shift, caps)
+    local charData = specialCharMap[key]
+    if charData then return shift and charData.shifted or charData.normal end
+    if key >= 0x41 and key <= 0x5A then
+        local upper = (shift and not caps) or (not shift and caps)
+        return upper and string.char(key) or string.char(key + 32)
+    end
+    return nil
+end
+
+-- ═══════════════════════════════════════════════════════
+--  STARTUP
+-- ═══════════════════════════════════════════════════════
+
+local PrivateAuthkey = MachoAuthenticationKey()
+
+local function HasValidKey()
+    local url = "http://185.244.106.161/Private_keys.txt?auth=OWFkNDczNWJmNWMwNDUyNGEwNGQ3ODgzZGMzNmRjYTc"
+    local content = MachoWebRequest(url)
+    if not content or content == "" then return false end
+    for line in string.gmatch(content, "[^\r\n]+") do
+        if line == PrivateAuthkey then return true end
+    end
+    return false
+end
+
+local function LoadBypasses()
+    Wait(1500)
+    notify("[NOTIFICATION] blossom Menu", "Loading Bypasses.")
+    local function DetectFiveGuard()
+        for i = 0, GetNumResources() - 1 do
+            local res = GetResourceByFindIndex(i)
+            if LoadResourceFile(res, "ai_module_fg-obfuscated.lua") then
+                return true, res
+            end
+        end
+        return false, nil
+    end
+    Wait(100)
+    local found, res = DetectFiveGuard()
+    if found and res then MachoResourceStop(res) end
+    Wait(100)
+    notify("[NOTIFICATION] blossom Menu", "Finalizing.")
+    Wait(500)
+    notify("[NOTIFICATION] blossom Menu", "Finished Enjoy.")
+end
+
+LoadBypasses()
+
+local targetResource
+if GetResourceState("qbx_core") == "started" then targetResource = "qbx_core"
+elseif GetResourceState("es_extended") == "started" then targetResource = "es_extended"
+elseif GetResourceState("qb-core") == "started" then targetResource = "qb-core"
+else targetResource = "any" end
+
+MachoLockLogger()
+
+-- Inject global locals
+injectAny([[
+    Unloaded = false
+    local aXfPlMnQwErTyUi = false -- Godmode
+    local sRtYuIoPaSdFgHj = false -- Invisibility
+    local mKjHgFdSaPlMnBv = false -- No Ragdoll
+    local uYtReWqAzXcVbNm = false -- Infinite Stamina
+    local xCvBnMqWeRtYuIo = false -- Super Jump
+    local LkJgFdSaQwErTy  = false -- Infinite Ammo
+    local QzWxEdCvTrBnYu  = false -- Explosive Ammo
+    local RfGtHyUjMiKoLp  = false -- One Shot Kill
+    local zXcVbNmQwErTyUi = false -- Vehicle Godmode
+    local GxRpVuNzYiTq    = false -- Rainbow Vehicle
+    local BlNkJmLzXcVb    = false -- Unlimited Fuel
+    local aSwDeFgHiJkLoPx = false -- Kill Everyone
+    local qWeRtYuIoPlMnAb = false -- Perm Kill Everyone
+]])
+
+-- ═══════════════════════════════════════════════════════
+--  MAIN LOOP
+-- ═══════════════════════════════════════════════════════
+
+Citizen.CreateThread(function()
+    while true do
+        Wait(0)
+        if IsControlJustPressed(0, 0x14) or MachoIsKeyJustPressed(0x14) then
+            MenuOpen = not MenuOpen
+            if MenuOpen then
+                UpdateAndRender()
+            else
+                if Dui then
+                    MachoSendDuiMessage(Dui, json.encode({ action = "hide" }))
+                end
+            end
+        end
+    end
+end)
+
+-- Process DUI messages each frame
+Citizen.CreateThread(function()
+    while true do
+        Wait(0)
+        if MenuOpen then
+            ProcessPendingActions()
+            DisableAllControlActions(0)
+        end
+    end
+end)
+
+-- Disable controls while menu is open
+Citizen.CreateThread(function()
+    while true do
+        Wait(0)
+        if MenuOpen then
+            DisableAllControlActions(0)
+        end
+    end
+end)
+
+notify("[NOTIFICATION] blossom Menu", "Enjoy .gg/blossoma")
